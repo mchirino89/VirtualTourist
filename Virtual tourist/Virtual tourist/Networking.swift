@@ -20,7 +20,7 @@ class Networking: NSObject {
     
     // MARK: GET
     
-    func taskForGETMethod(parameters: [String:AnyObject], completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ error: NSError?) -> Void) {
+    func taskForGETMethod(parameters: [String:AnyObject], isJSON: Bool, completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) {
         
         let request = NSMutableURLRequest(url: URLFromParameters(parameters: parameters))
         
@@ -30,7 +30,7 @@ class Networking: NSObject {
             func sendError(_ error: String) {
                 print(error)
                 let userInfo = [NSLocalizedDescriptionKey : error]
-                completionHandlerForGET(nil, NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
+                completionHandlerForGET(nil, nil, NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
             }
             
             /* GUARD: Was there an error? */
@@ -51,8 +51,7 @@ class Networking: NSObject {
                 return
             }
             
-            /* 5/6. Parse the data and use the data (happens in completion handler) */
-            self.convertDataWithCompletionHandler(data, completionHandlerForConvertData: completionHandlerForGET)
+            self.convertDataWithCompletionHandler(data, dataType: isJSON, completionHandlerForConvertData: completionHandlerForGET)
         }.resume()
     }
     
@@ -74,17 +73,20 @@ class Networking: NSObject {
     }
     
     // given raw JSON, return a usable Foundation object
-    private func convertDataWithCompletionHandler(_ data: Data, completionHandlerForConvertData: (_ result: [String:AnyObject]?, _ error: NSError?) -> Void) {
+    private func convertDataWithCompletionHandler(_ data: Data, dataType: Bool, completionHandlerForConvertData: (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) {
         
-        var parsedResult: AnyObject! = nil
-        do {
-            parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as AnyObject
-        } catch {
-            let userInfo = [NSLocalizedDescriptionKey : "\(Constants.ErrorMessages.parsingJSON)'\(data)'"]
-            completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+        if dataType {
+            var parsedResult: AnyObject! = nil
+            do {
+                parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as AnyObject
+            } catch {
+                let userInfo = [NSLocalizedDescriptionKey : "\(Constants.ErrorMessages.parsingJSON)'\(data)'"]
+                completionHandlerForConvertData(nil, nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+            }
+            completionHandlerForConvertData(parsedResult as? [String : AnyObject], nil, nil)
+        } else {
+            completionHandlerForConvertData(nil, data, nil)
         }
-        
-        completionHandlerForConvertData(parsedResult as? [String : AnyObject], nil)
     }
     
     class func sharedInstance() -> Networking {

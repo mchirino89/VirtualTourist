@@ -6,12 +6,12 @@
 //  Copyright © 2017 3CodeGeeks. All rights reserved.
 //
 
+import UIKit
+
 struct Constants {
     
     struct APIConfiguration {
         static let ApiScheme = "https"
-        // MARK: API Key
-        static let ApiKey = "565d9aa439a0e3b91a2be9ad89b2b9e6"
         static let ApiSecret = "765dc3b8f259d3ff"
     }
     
@@ -24,15 +24,23 @@ struct Constants {
         static let results = "per_page"
         static let format = "format"
         static let callback = "nojsoncallback"
+        static let currentPage = "page"
     }
     
     struct ParameterValue {
         static let method = "flickr.photos.search"
-        static let APIKey = "f78755583fac5d9ece56b77eb3dd331e"
+        static let APIKey = "565d9aa439a0e3b91a2be9ad89b2b9e6"
         static let extra = "url_m"
-        static let results = 25
+        static let results = 24
         static let format = "json"
         static let callback = 1
+    }
+    
+    struct JSONResponseKey {
+        static let photos = "photos"
+        static let image = "photo"
+        static let pages = "pages"
+        static let sourceURL = "url_m"
     }
     
     struct URL {
@@ -47,6 +55,7 @@ struct Constants {
     
     struct UIElements {
         static let mapPinId = "pin"
+        static let customTitleFont = "MarkerFelt-Thin"
     }
     
     struct ErrorMessages {
@@ -67,4 +76,26 @@ struct Constants {
         static let appTitle = "On the map"
         static let locationPermission = "Using your device's GPS, the app can get your current location for you. May it proceed?"
     }
+}
+
+func getCustomTitle(viewTitle: String) -> UILabel {
+    let titleLabel = UILabel()
+    titleLabel.text = viewTitle
+    titleLabel.font = UIFont(name: Constants.UIElements.customTitleFont, size: 21)
+    titleLabel.sizeToFit()
+    return titleLabel
+}
+
+func getPopupAlert(message: String, title: String = Constants.ErrorMessages.popupTitle, buttonText: String = Constants.ErrorMessages.popupButton) -> UIAlertController {
+    let popupAlert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    popupAlert.addAction(UIAlertAction(title: buttonText, style: .default))
+    return popupAlert
+}
+
+func questionPopup(title: String, message: String, style: UIAlertControllerStyle, afirmativeAction: ((UIAlertAction) -> Void)?) -> UIAlertController {
+    let questionAlert = UIAlertController(title: title, message: message, preferredStyle: style)
+    let logOutAction = UIAlertAction(title: Constants.UIMessages.affirmative, style: .destructive, handler: afirmativeAction)
+    questionAlert.addAction(logOutAction)
+    questionAlert.addAction(UIAlertAction(title: Constants.UIMessages.negative, style: .default))
+    return questionAlert
 }
