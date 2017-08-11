@@ -43,9 +43,17 @@ struct Constants {
         static let sourceURL = "url_m"
     }
     
+    struct photoPath {
+        static let farm = "farm"
+        static let host = "staticflickr.com"
+        static let server = "server"
+        static let id = "id"
+        static let secret = "secret"
+    }
+    
     struct URL {
-        static let host = "api.flickr.com"
-        static let path = "/services/rest/"
+        static let FlickrServer = "api.flickr.com"
+        static let APIpath = "/services/rest/"
     }
     
     struct Storyboard {

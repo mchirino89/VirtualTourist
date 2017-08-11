@@ -65,16 +65,15 @@ class LocationController: UIViewController {
         ]
         
         DispatchQueue.global(qos: .userInteractive).async {
-            Networking.sharedInstance().taskForGETMethod(parameters: getPhotosParameters, isJSON: true, completionHandlerForGET: { (JSON, data, error) in
+            Networking.sharedInstance().taskForGETMethod(serverHost: Constants.URL.FlickrServer, serverPath: Constants.URL.APIpath, parameters: getPhotosParameters, isJSON: true, completionHandlerForGET: { [unowned self] (JSON, data, error) in
                 if let error = error {
                     print(error)
                     DispatchQueue.main.async {
                         self.refreshCollectionList(extraLoad: false)
                     }
                 } else {
-                    print(JSON ?? "Something wrong with JSON response")
                     guard let jsonResponse = JSON![Constants.JSONResponseKey.photos] as? [String: Any] else { return }
-                    let moreImages = self.setImages(results: jsonResponse)
+                    let moreImages = self.setImagesSource(results: jsonResponse)
                     DispatchQueue.main.async {
                         self.refreshCollectionList(extraLoad: moreImages)
                     }
@@ -93,7 +92,7 @@ class LocationController: UIViewController {
         })
     }
     
-    private func setImages(results: [String: Any]) -> Bool {
+    private func setImagesSource(results: [String: Any]) -> Bool {
         guard let photos = results[Constants.JSONResponseKey.image] as? [[String: Any]] else { return false }
         if photos.count > 0 {
             let _ = photos.map {
@@ -114,20 +113,29 @@ extension LocationController: UICollectionViewDelegate, UICollectionViewDataSour
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Constants.Storyboard.photoCell, for: indexPath) as! PhotoCollectionViewCell
-        cell.thumbNailImage.image = #imageLiteral(resourceName: "placeholderPhoto")
-//        cell.thumbNailImage.setImageFromURl(sourceURL: photosSource[indexPath.row])
-        cell.downloadActivityIndicator.stopAnimating()
+        DispatchQueue.global(qos: .userInteractive).async {
+            [unowned self] _ in
+            Networking.sharedInstance().taskForGETMethod(serverHost: self.photosSource[indexPath.row], serverPath: "", parameters: [:], isJSON: false, completionHandlerForGET: {
+                [unowned self] (JSON, data, error) in
+                if let error = error {
+                    print(error)
+                    DispatchQueue.main.async {
+                        cell.thumbNailImage.image = #imageLiteral(resourceName: "placeholderPhoto")
+                        cell.downloadActivityIndicator.stopAnimating()
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        cell.thumbNailImage.image = UIImage(data: data!)
+                        cell.downloadActivityIndicator.stopAnimating()
+                        self.photoCollectionView.reloadItems(at: [indexPath])
+                    }
+                }
+            })
+        }
         return cell
     }
-}
-
-extension UIImageView{
-    func setImageFromURl(sourceURL: String) {
-        
-        if let url = URL(string: sourceURL) {
-            if let data = NSData(contentsOf: url as URL) {
-                self.image = UIImage(data: data as Data)
-            }
-        }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+//        questionPopup(title: <#T##String#>, message: <#T##String#>, style: <#T##UIAlertControllerStyle#>, afirmativeAction: <#T##((UIAlertAction) -> Void)?##((UIAlertAction) -> Void)?##(UIAlertAction) -> Void#>)
     }
 }

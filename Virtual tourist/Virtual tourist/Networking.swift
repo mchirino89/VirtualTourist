@@ -20,12 +20,18 @@ class Networking: NSObject {
     
     // MARK: GET
     
-    func taskForGETMethod(parameters: [String:AnyObject], isJSON: Bool, completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) {
+    func taskForGETMethod(serverHost: String, serverPath: String, parameters: [String:AnyObject], isJSON: Bool, completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) {
         
-        let request = NSMutableURLRequest(url: URLFromParameters(parameters: parameters))
+        var request:NSMutableURLRequest?
+        if isJSON {
+            request = NSMutableURLRequest(url: URLFromParameters(host: serverHost, path: serverPath, parameters: parameters))
+        } else {
+            let URLStruct = getURLStruct(URL: serverHost)
+            request = NSMutableURLRequest(url: URLFromParameters(host: URLStruct.0, path: URLStruct.1, parameters: parameters))
+        }
         
         /* 4. Make the request */
-        session.dataTask(with: request as URLRequest) { (data, response, error) in
+        session.dataTask(with: request! as URLRequest) { (data, response, error) in
             
             func sendError(_ error: String) {
                 print(error)
@@ -55,14 +61,27 @@ class Networking: NSObject {
         }.resume()
     }
     
+    private func getURLStruct(URL: String) -> (String, String) {
+        let mutableURL = URL.replacingOccurrences(of: "https://", with: "").components(separatedBy: "/")
+        var path = ""
+        for component in mutableURL {
+            if !component.contains(".com") {
+                path = path + component + "/"
+            } else {
+                path = "/"
+            }
+        }
+        return (mutableURL.first!, path)
+    }
+    
     // create a URL from parameters
-    private func URLFromParameters(parameters: [String:AnyObject]) -> URL {
+    private func URLFromParameters(host: String, path: String, parameters: [String:AnyObject]) -> URL {
         
         var components = URLComponents()
         components.scheme = Constants.APIConfiguration.ApiScheme
         
-        components.host = Constants.URL.host
-        components.path = Constants.URL.path
+        components.host = host
+        components.path = path
         components.queryItems = [URLQueryItem]()
         
         for (key, pairValue) in parameters {
