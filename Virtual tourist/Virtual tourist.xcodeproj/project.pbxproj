@@ -13,6 +13,7 @@
 		223505741F3A5E43001AB5A6 /* Virtual_tourist.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 223505721F3A5E43001AB5A6 /* Virtual_tourist.xcdatamodeld */; };
 		223505761F3A5E43001AB5A6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 223505751F3A5E43001AB5A6 /* Assets.xcassets */; };
 		223505791F3A5E43001AB5A6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 223505771F3A5E43001AB5A6 /* LaunchScreen.storyboard */; };
+		2267B8DC1F3D550C001AB8F8 /* Networking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2267B8DB1F3D550C001AB8F8 /* Networking.swift */; };
 		228AC9B21F3BC8E500DB3565 /* LocationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228AC9B11F3BC8E500DB3565 /* LocationController.swift */; };
 		228AC9B61F3BC9CE00DB3565 /* PhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228AC9B51F3BC9CE00DB3565 /* PhotoCollectionViewCell.swift */; };
 		228AC9B81F3BC9F300DB3565 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228AC9B71F3BC9F300DB3565 /* Constants.swift */; };
@@ -28,6 +29,7 @@
 		223505751F3A5E43001AB5A6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		223505781F3A5E43001AB5A6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2235057A1F3A5E43001AB5A6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2267B8DB1F3D550C001AB8F8 /* Networking.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Networking.swift; sourceTree = "<group>"; };
 		228AC9B11F3BC8E500DB3565 /* LocationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationController.swift; sourceTree = "<group>"; };
 		228AC9B51F3BC9CE00DB3565 /* PhotoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoCollectionViewCell.swift; sourceTree = "<group>"; };
 		228AC9B71F3BC9F300DB3565 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -64,12 +66,22 @@
 		2235056A1F3A5E43001AB5A6 /* Virtual tourist */ = {
 			isa = PBXGroup;
 			children = (
-				2235056B1F3A5E43001AB5A6 /* AppDelegate.swift */,
+				2267B8DE1F3D56B2001AB8F8 /* Config */,
 				228AC9B31F3BC99D00DB3565 /* Controllers */,
 				228AC9B01F3BC68F00DB3565 /* UI */,
 				228AC9B41F3BC9A700DB3565 /* Helpers */,
 			);
 			path = "Virtual tourist";
+			sourceTree = "<group>";
+		};
+		2267B8DE1F3D56B2001AB8F8 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				2235056B1F3A5E43001AB5A6 /* AppDelegate.swift */,
+				2235057A1F3A5E43001AB5A6 /* Info.plist */,
+				223505721F3A5E43001AB5A6 /* Virtual_tourist.xcdatamodeld */,
+			);
+			name = Config;
 			sourceTree = "<group>";
 		};
 		228AC9B01F3BC68F00DB3565 /* UI */ = {
@@ -95,10 +107,9 @@
 		228AC9B41F3BC9A700DB3565 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				2235057A1F3A5E43001AB5A6 /* Info.plist */,
-				223505721F3A5E43001AB5A6 /* Virtual_tourist.xcdatamodeld */,
 				228AC9B71F3BC9F300DB3565 /* Constants.swift */,
 				228AC9B91F3BF39D00DB3565 /* DropPinAnnotationView.swift */,
+				2267B8DB1F3D550C001AB8F8 /* Networking.swift */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -179,6 +190,7 @@
 				228AC9B21F3BC8E500DB3565 /* LocationController.swift in Sources */,
 				228AC9B61F3BC9CE00DB3565 /* PhotoCollectionViewCell.swift in Sources */,
 				2235056E1F3A5E43001AB5A6 /* MapController.swift in Sources */,
+				2267B8DC1F3D550C001AB8F8 /* Networking.swift in Sources */,
 				223505741F3A5E43001AB5A6 /* Virtual_tourist.xcdatamodeld in Sources */,
 				2235056C1F3A5E43001AB5A6 /* AppDelegate.swift in Sources */,
 				228AC9B81F3BC9F300DB3565 /* Constants.swift in Sources */,

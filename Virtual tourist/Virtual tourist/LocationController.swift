@@ -27,6 +27,21 @@ class LocationController: UIViewController {
         layout.minimumLineSpacing = 8
         layout.minimumInteritemSpacing = 8
         photoCollectionView.collectionViewLayout = layout
+        
+        Networking.sharedInstance().taskForGETMethod(parameters: ["method": "flickr.photos.search" as Any as AnyObject, "api_key": "f78755583fac5d9ece56b77eb3dd331e" as Any as AnyObject, "lat": locationCoordinates!.latitude as Any as AnyObject, "lon": locationCoordinates!.longitude as Any as AnyObject, "extras": "url_m" as Any as AnyObject, "per_page": 25 as Any as AnyObject, "format": "json" as Any as AnyObject, "nojsoncallback": 1 as Any as AnyObject], jsonBody: "", completionHandlerForGET: { (results, error) in
+                if let error = error {
+                    print(error)
+                    DispatchQueue.main.async {
+                    }
+                } else {
+                    guard let jsonResponse = results else { return }
+                    print(jsonResponse)
+                    DispatchQueue.main.async {
+                        
+                    }
+                }
+        })
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -41,7 +56,7 @@ class LocationController: UIViewController {
         detailedMapView.addAnnotation(referralPin)
         detailedMapView.setRegion(MKCoordinateRegion(center: locationCoordinates!, span: MKCoordinateSpan(latitudeDelta: 1, longitudeDelta: 1)), animated: true)
     }
-
+    
 }
 
 extension LocationController: UICollectionViewDelegate, UICollectionViewDataSource {
