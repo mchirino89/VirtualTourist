@@ -12,18 +12,37 @@ struct Constants {
         static let ApiScheme = "https"
         // MARK: API Key
         static let ApiKey = "565d9aa439a0e3b91a2be9ad89b2b9e6"
-        static let AppId = "765dc3b8f259d3ff"
+        static let ApiSecret = "765dc3b8f259d3ff"
+    }
+    
+    struct ParameterKey {
+        static let method = "method"
+        static let APIKey = "api_key"
+        static let latitud = "lat"
+        static let longitude = "lon"
+        static let extra = "extras"
+        static let results = "per_page"
+        static let format = "format"
+        static let callback = "nojsoncallback"
+    }
+    
+    struct ParameterValue {
+        static let method = "flickr.photos.search"
+        static let APIKey = "f78755583fac5d9ece56b77eb3dd331e"
+        static let extra = "url_m"
+        static let results = 25
+        static let format = "json"
+        static let callback = 1
+    }
+    
+    struct URL {
+        static let host = "api.flickr.com"
+        static let path = "/services/rest/"
     }
     
     struct Storyboard {
         static let locationSegue = "locationSegue"
         static let photoCell = "photoCell"
-    }
-    
-    // MARK: Parameter Keys
-    struct ParameterKeys {
-        static let AppId = "X-Parse-Application-Id"
-        static let ApiKey = "X-Parse-REST-API-Key"
     }
     
     struct UIElements {

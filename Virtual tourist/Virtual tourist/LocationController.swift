@@ -28,7 +28,18 @@ class LocationController: UIViewController {
         layout.minimumInteritemSpacing = 8
         photoCollectionView.collectionViewLayout = layout
         
-        Networking.sharedInstance().taskForGETMethod(parameters: ["method": "flickr.photos.search" as Any as AnyObject, "api_key": "f78755583fac5d9ece56b77eb3dd331e" as Any as AnyObject, "lat": locationCoordinates!.latitude as Any as AnyObject, "lon": locationCoordinates!.longitude as Any as AnyObject, "extras": "url_m" as Any as AnyObject, "per_page": 25 as Any as AnyObject, "format": "json" as Any as AnyObject, "nojsoncallback": 1 as Any as AnyObject], jsonBody: "", completionHandlerForGET: { (results, error) in
+        let getPhotosParameters:[String:AnyObject] = [
+            Constants.ParameterKey.method: Constants.ParameterValue.method as AnyObject,
+            Constants.ParameterKey.APIKey: Constants.ParameterValue.APIKey as AnyObject,
+            Constants.ParameterKey.latitud: locationCoordinates!.latitude as AnyObject,
+            Constants.ParameterKey.longitude: locationCoordinates!.longitude as AnyObject,
+            Constants.ParameterKey.format: Constants.ParameterValue.format as AnyObject,
+            Constants.ParameterKey.results: Constants.ParameterValue.results as AnyObject,
+            Constants.ParameterKey.extra: Constants.ParameterValue.extra as AnyObject,
+            Constants.ParameterKey.callback: Constants.ParameterValue.callback as AnyObject
+        ]
+        
+        Networking.sharedInstance().taskForGETMethod(parameters: getPhotosParameters, completionHandlerForGET: { (results, error) in
                 if let error = error {
                     print(error)
                     DispatchQueue.main.async {

@@ -141,7 +141,7 @@
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <connections>
                         <outlet property="detailedMapView" destination="Lnl-jk-4M9" id="Th6-JP-uDJ"/>
-                        <outlet property="newCollectionButton" destination="HXS-GA-lYc" id="Psq-Po-X85"/>
+                        <outlet property="newCollectionButton" destination="HXS-GA-lYc" id="V9y-HM-Kgr"/>
                         <outlet property="photoCollectionView" destination="Vid-Om-L9g" id="ijC-kZ-NbC"/>
                     </connections>
                 </viewController>

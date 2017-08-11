@@ -27,6 +27,15 @@ class MapController: UIViewController {
         let pinDropLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.addPinToMap(gesture:)))
         pinDropLongPressGesture.minimumPressDuration = 0.35
         touristMapView.addGestureRecognizer(pinDropLongPressGesture)
+        
+        // MARK: Testing purposes
+        
+        let testPin = DropPinAnnotationView()
+        testPin.locationIdentifier = "12343567"
+        testPin.title = "Pirineos 2"
+        testPin.coordinate = CLLocationCoordinate2D(latitude: 7.773, longitude: -72.20238)
+        
+        performSegue(withIdentifier: Constants.Storyboard.locationSegue, sender: testPin)
     }
     
     override func viewWillAppear(_ animated: Bool) {

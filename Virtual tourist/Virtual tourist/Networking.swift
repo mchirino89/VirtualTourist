@@ -11,10 +11,6 @@ import UIKit
 class Networking: NSObject {
     
     let session = URLSession.shared
-
-    // authentication state
-    var sessionID: String? = nil
-    var userID: Int? = nil
     
     // MARK: Initializers
     
@@ -24,13 +20,9 @@ class Networking: NSObject {
     
     // MARK: GET
     
-    func taskForGETMethod(parameters: [String:AnyObject], jsonBody: String, completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ error: NSError?) -> Void) {
-        
-        /* 2/3. Build the URL, Configure the request */
+    func taskForGETMethod(parameters: [String:AnyObject], completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ error: NSError?) -> Void) {
         
         let request = NSMutableURLRequest(url: URLFromParameters(parameters: parameters))
-        
-        print(request.url ?? "No url")
         
         /* 4. Make the request */
         session.dataTask(with: request as URLRequest) { (data, response, error) in
@@ -64,12 +56,21 @@ class Networking: NSObject {
         }.resume()
     }
     
-    // MARK: Network logic for Http request
-    private func networkLogic(logicHandler: @escaping (Data?, URLResponse?, Error?) -> Void, completionHandlerForRequest: @escaping (_ result: [String:AnyObject]?, _ error: NSError?) -> Void) {
-        // ⚠️ I wanted to move the logic from http request into here but i didn't find a way to execute the closeru 'logicHandler' within this method. Could you please tell me how to do it?
-//        logicHandler() {
-//            (data, response, error) in
-//        }
+    // create a URL from parameters
+    private func URLFromParameters(parameters: [String:AnyObject]) -> URL {
+        
+        var components = URLComponents()
+        components.scheme = Constants.APIConfiguration.ApiScheme
+        
+        components.host = Constants.URL.host
+        components.path = Constants.URL.path
+        components.queryItems = [URLQueryItem]()
+        
+        for (key, pairValue) in parameters {
+            let queryItem = URLQueryItem(name: key, value: "\(pairValue)")
+            components.queryItems!.append(queryItem)
+        }
+        return components.url!
     }
     
     // given raw JSON, return a usable Foundation object
@@ -84,23 +85,6 @@ class Networking: NSObject {
         }
         
         completionHandlerForConvertData(parsedResult as? [String : AnyObject], nil)
-    }
-    
-    // create a URL from parameters
-    private func URLFromParameters(parameters: [String:AnyObject]) -> URL {
-        
-        var components = URLComponents()
-        components.scheme = Constants.APIConfiguration.ApiScheme
-        
-        components.host = "api.flickr.com"
-        components.path = "/services/rest/"
-        components.queryItems = [URLQueryItem]()
-        
-        for (key, pairValue) in parameters {
-            let queryItem = URLQueryItem(name: key, value: "\(pairValue)")
-            components.queryItems!.append(queryItem)
-        }
-        return components.url!
     }
     
     class func sharedInstance() -> Networking {
