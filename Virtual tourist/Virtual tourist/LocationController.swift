@@ -15,7 +15,9 @@ class LocationController: UIViewController {
     var locationIdentifier: String?
     var locationName: String?
     var locationCoordinates: CLLocationCoordinate2D?
-    var photosSource:[String] = []
+    var photosSource:[[String:String]] = []
+    var isEmptyPhotoLocation: Bool?
+    var pinLocationImagesPage:Int?
     
     @IBOutlet weak var detailedMapView: MKMapView!
     @IBOutlet weak var loadingView: UIView!
@@ -25,6 +27,11 @@ class LocationController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = locationName
+        
+        let referralPin = MKPointAnnotation()
+        referralPin.coordinate = locationCoordinates!
+        detailedMapView.addAnnotation(referralPin)
+        detailedMapView.setRegion(MKCoordinateRegion(center: locationCoordinates!, span: MKCoordinateSpan(latitudeDelta: 1.25, longitudeDelta: 1.25)), animated: true)
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         layout.sectionInset = UIEdgeInsets(top: 5, left: 0, bottom: 8, right: 0)
         layout.itemSize = CGSize(width: (view.bounds.width / 3) - 8, height: (view.bounds.width / 3) - 8)
@@ -39,16 +46,27 @@ class LocationController: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: true)
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        let referralPin = MKPointAnnotation()
-        referralPin.coordinate = locationCoordinates!
-        detailedMapView.addAnnotation(referralPin)
-        detailedMapView.setRegion(MKCoordinateRegion(center: locationCoordinates!, span: MKCoordinateSpan(latitudeDelta: 1, longitudeDelta: 1)), animated: true)
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard let destination = segue.destination as? FullScreenViewController else { return }
+        guard let selectedCell = sender as? PhotoCollectionViewCell else { return }
+        destination.imageId = selectedCell.photoId
+        destination.fullImage = selectedCell.thumbNailImage.image
+        destination.imageLegend = selectedCell.photoLegend
+    }
+    
+    func erasePicture(sender: UIGestureRecognizer) {
+        if sender.state == .began {
+            
+        }
+    }
+    
+    @IBAction func newCollectionAction() {
+        loadPinImages(page: Int(arc4random_uniform(UInt32(pinLocationImagesPage!))))
     }
     
     private func loadPinImages(page: Int) {
         
+        photosSource.removeAll()
         loadingView.alpha = 0.6
         view.bringSubview(toFront: loadingView)
         
@@ -73,6 +91,7 @@ class LocationController: UIViewController {
                     }
                 } else {
                     guard let jsonResponse = JSON![Constants.JSONResponseKey.photos] as? [String: Any] else { return }
+                    print(jsonResponse)
                     let moreImages = self.setImagesSource(results: jsonResponse)
                     DispatchQueue.main.async {
                         self.refreshCollectionList(extraLoad: moreImages)
@@ -82,10 +101,11 @@ class LocationController: UIViewController {
         }
     }
     
-    func refreshCollectionList(extraLoad: Bool) {
+    private func refreshCollectionList(extraLoad: Bool) {
         photoCollectionView.reloadData()
         UIView.animate(withDuration: 0.3, animations: {
             self.loadingView.alpha = 0
+            self.photoCollectionView.alpha = self.isEmptyPhotoLocation ? 1 : 0
         }, completion: { _ in
             self.view.sendSubview(toBack: self.loadingView)
             self.newCollectionButton.isEnabled = extraLoad
@@ -96,10 +116,13 @@ class LocationController: UIViewController {
         guard let photos = results[Constants.JSONResponseKey.image] as? [[String: Any]] else { return false }
         if photos.count > 0 {
             let _ = photos.map {
-                photosSource.append($0[Constants.JSONResponseKey.sourceURL] as! String)
+                let newPhoto = [Constants.JSONResponseKey.photoId: $0[Constants.JSONResponseKey.photoId] as! String,Constants.JSONResponseKey.legend: $0[Constants.JSONResponseKey.legend] as! String, Constants.JSONResponseKey.sourceURL: $0[Constants.JSONResponseKey.sourceURL] as! String]
+                photosSource.append(newPhoto)
             }
         }
-        if let pages = results[Constants.JSONResponseKey.pages] as? Int {
+        if let pages = results[Constants.JSONResponseKey.pages] as? Int, let total = results[Constants.JSONResponseKey.total] as? Int {
+            pinLocationImagesPage = pages
+            isEmptyPhotoLocation = total > 0
             return pages > 1
         }
         return false
@@ -113,29 +136,18 @@ extension LocationController: UICollectionViewDelegate, UICollectionViewDataSour
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Constants.Storyboard.photoCell, for: indexPath) as! PhotoCollectionViewCell
-        DispatchQueue.global(qos: .userInteractive).async {
-            [unowned self] _ in
-            Networking.sharedInstance().taskForGETMethod(serverHost: self.photosSource[indexPath.row], serverPath: "", parameters: [:], isJSON: false, completionHandlerForGET: {
-                [unowned self] (JSON, data, error) in
-                if let error = error {
-                    print(error)
-                    DispatchQueue.main.async {
-                        cell.thumbNailImage.image = #imageLiteral(resourceName: "placeholderPhoto")
-                        cell.downloadActivityIndicator.stopAnimating()
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        cell.thumbNailImage.image = UIImage(data: data!)
-                        cell.downloadActivityIndicator.stopAnimating()
-                        self.photoCollectionView.reloadItems(at: [indexPath])
-                    }
-                }
-            })
+        cell.setId(photosSource[indexPath.row][Constants.JSONResponseKey.photoId]!)
+        cell.setLegend(photosSource[indexPath.row][Constants.JSONResponseKey.legend]!)
+        cell.setPhoto(photosSource[indexPath.row][Constants.JSONResponseKey.sourceURL]!)
+        if let _ = cell.gestureRecognizers {
+            let erasePhotoLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(erasePicture(sender:)))
+            erasePhotoLongPressGesture.minimumPressDuration = 0.35
+            cell.addGestureRecognizer(erasePhotoLongPressGesture)
         }
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        questionPopup(title: <#T##String#>, message: <#T##String#>, style: <#T##UIAlertControllerStyle#>, afirmativeAction: <#T##((UIAlertAction) -> Void)?##((UIAlertAction) -> Void)?##(UIAlertAction) -> Void#>)
+        performSegue(withIdentifier: Constants.Storyboard.fullScreenSegue, sender: (collectionView.cellForItem(at: indexPath) as! PhotoCollectionViewCell))
     }
 }

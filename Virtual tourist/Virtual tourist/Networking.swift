@@ -93,7 +93,6 @@ class Networking: NSObject {
     
     // given raw JSON, return a usable Foundation object
     private func convertDataWithCompletionHandler(_ data: Data, dataType: Bool, completionHandlerForConvertData: (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) {
-        
         if dataType {
             var parsedResult: AnyObject! = nil
             do {

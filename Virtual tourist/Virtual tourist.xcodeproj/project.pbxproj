@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		220961CB1F3E89F600B7F906 /* Singleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 220961CA1F3E89F600B7F906 /* Singleton.swift */; };
+		220961CD1F3E99A100B7F906 /* FullScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 220961CC1F3E99A100B7F906 /* FullScreenViewController.swift */; };
 		2235056C1F3A5E43001AB5A6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2235056B1F3A5E43001AB5A6 /* AppDelegate.swift */; };
 		2235056E1F3A5E43001AB5A6 /* MapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2235056D1F3A5E43001AB5A6 /* MapController.swift */; };
 		223505711F3A5E43001AB5A6 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2235056F1F3A5E43001AB5A6 /* Main.storyboard */; };
@@ -21,6 +23,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		220961CA1F3E89F600B7F906 /* Singleton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Singleton.swift; sourceTree = "<group>"; };
+		220961CC1F3E99A100B7F906 /* FullScreenViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FullScreenViewController.swift; sourceTree = "<group>"; };
 		223505681F3A5E43001AB5A6 /* Virtual tourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Virtual tourist.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2235056B1F3A5E43001AB5A6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2235056D1F3A5E43001AB5A6 /* MapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapController.swift; sourceTree = "<group>"; };
@@ -100,6 +104,7 @@
 			children = (
 				2235056D1F3A5E43001AB5A6 /* MapController.swift */,
 				228AC9B11F3BC8E500DB3565 /* LocationController.swift */,
+				220961CC1F3E99A100B7F906 /* FullScreenViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -110,6 +115,7 @@
 				228AC9B71F3BC9F300DB3565 /* Constants.swift */,
 				228AC9B91F3BF39D00DB3565 /* DropPinAnnotationView.swift */,
 				2267B8DB1F3D550C001AB8F8 /* Networking.swift */,
+				220961CA1F3E89F600B7F906 /* Singleton.swift */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -192,9 +198,11 @@
 				2235056E1F3A5E43001AB5A6 /* MapController.swift in Sources */,
 				2267B8DC1F3D550C001AB8F8 /* Networking.swift in Sources */,
 				223505741F3A5E43001AB5A6 /* Virtual_tourist.xcdatamodeld in Sources */,
+				220961CD1F3E99A100B7F906 /* FullScreenViewController.swift in Sources */,
 				2235056C1F3A5E43001AB5A6 /* AppDelegate.swift in Sources */,
 				228AC9B81F3BC9F300DB3565 /* Constants.swift in Sources */,
 				228AC9BA1F3BF39D00DB3565 /* DropPinAnnotationView.swift in Sources */,
+				220961CB1F3E89F600B7F906 /* Singleton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -37,10 +37,13 @@ struct Constants {
     }
     
     struct JSONResponseKey {
+        static let total = "total"
         static let photos = "photos"
         static let image = "photo"
         static let pages = "pages"
+        static let photoId = "id"
         static let sourceURL = "url_m"
+        static let legend = "title"
     }
     
     struct photoPath {
@@ -59,6 +62,7 @@ struct Constants {
     struct Storyboard {
         static let locationSegue = "locationSegue"
         static let photoCell = "photoCell"
+        static let fullScreenSegue = "fullImageSegue"
     }
     
     struct UIElements {
@@ -80,9 +84,7 @@ struct Constants {
     struct UIMessages {
         static let affirmative = "Yes"
         static let negative = "No"
-        static let logout = "Log out"
-        static let appTitle = "On the map"
-        static let locationPermission = "Using your device's GPS, the app can get your current location for you. May it proceed?"
+        static let deletePictureMessage = "Are you sure you want to delete this picture from this album's location?"
     }
 }
 
