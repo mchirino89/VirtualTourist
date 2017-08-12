@@ -11,9 +11,15 @@ import UIKit
 class PhotoCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var thumbNailImage: UIImageView!
     @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
+    
+    weak var referencedNavigationController: UINavigationController?
+    weak var photoCollectionReferenceView: UICollectionView?
+    var photosSourceReference:[[String:String]]?
+    
     var photoId:String?
     var photoSourceURL:String?
     var photoLegend:String?
+    var photoDownloadTask:URLSessionTask?
     
     func setId(_ id: String) {
         photoId = id
@@ -24,13 +30,12 @@ class PhotoCollectionViewCell: UICollectionViewCell {
     }
     
     func setPhoto(_ sourceURL: String) {
-        
         photoSourceURL = sourceURL
         if let image = Singleton.sharedInstance.appCache.object(forKey: sourceURL as AnyObject) as? UIImage {
             thumbNailImage.image = image
             downloadActivityIndicator.stopAnimating()
         } else {
-            Networking.sharedInstance().taskForGETMethod(serverHost: sourceURL, serverPath: "", parameters: [:], isJSON: false, completionHandlerForGET: {
+            photoDownloadTask = Networking.sharedInstance().taskForGETMethod(serverHost: sourceURL, serverPath: "", parameters: [:], isJSON: false, completionHandlerForGET: {
                 [unowned self] (JSON, data, error) in
                 if let error = error {
                     print(error)
@@ -39,16 +44,42 @@ class PhotoCollectionViewCell: UICollectionViewCell {
                         Singleton.sharedInstance.appCache.setObject(UIImage(), forKey: sourceURL as AnyObject)
                     }
                 } else {
-                    DispatchQueue.main.async(execute: {
+                    DispatchQueue.main.async {
                         let downloadedImage = UIImage(data: data!)
                         if self.photoSourceURL == sourceURL {
                             self.thumbNailImage.image = downloadedImage
                         }
                         Singleton.sharedInstance.appCache.setObject(downloadedImage!, forKey: sourceURL as AnyObject)
                         self.downloadActivityIndicator.stopAnimating()
-                    })
+                    }
                 }
             })
+        }
+    }
+    
+    func cancelPhotoDownload() {
+        photoDownloadTask?.cancel()
+    }
+    
+    func setLongPressGesture(photosSource:inout [[String:String]], photoGallery: UICollectionView, navigationController: UINavigationController) {
+        photoCollectionReferenceView = photoGallery
+        photosSourceReference = photosSource
+        referencedNavigationController = navigationController
+        let erasePhotoLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(erasePicture(sender:)))
+        erasePhotoLongPressGesture.minimumPressDuration = 0.3
+        addGestureRecognizer(erasePhotoLongPressGesture)
+    }
+    
+    func erasePicture(sender: UIGestureRecognizer) {
+        if sender.state == .began {
+            referencedNavigationController?.present(questionPopup(title: Constants.UIMessages.deletePictureTitle, message: Constants.UIMessages.deletePictureMessage, style: .alert, afirmativeAction: { [unowned self] _ in
+                print(self.photosSourceReference!.count)
+                self.photosSourceReference = self.photosSourceReference?.filter {
+                   $0[Constants.JSONResponseKey.photoId] != (sender.view as! PhotoCollectionViewCell).photoId!
+                }
+                print(self.photosSourceReference!.count)
+                self.photoCollectionReferenceView?.reloadData()
+            }), animated: true)
         }
     }
 }

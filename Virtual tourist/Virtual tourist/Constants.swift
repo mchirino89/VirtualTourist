@@ -82,8 +82,10 @@ struct Constants {
     }
     
     struct UIMessages {
+        static let mapTitle = "Tourism map"
         static let affirmative = "Yes"
         static let negative = "No"
+        static let deletePictureTitle = "Delete picture"
         static let deletePictureMessage = "Are you sure you want to delete this picture from this album's location?"
     }
 }

@@ -20,7 +20,7 @@ class MapController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Tourism map"
+        navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: Constants.UIMessages.mapTitle)
         locationManager.delegate = self
         locationManager.desiredAccuracy = 30
         locationManager.requestWhenInUseAuthorization()
@@ -30,11 +30,11 @@ class MapController: UIViewController {
         
         // MARK: Testing purposes
         
-//        let testPin = DropPinAnnotationView()
-//        testPin.locationIdentifier = "12343567"
-//        testPin.title = "Pirineos 2"
-//        testPin.coordinate = CLLocationCoordinate2D(latitude: 7.773, longitude: -72.20238)
-//        performSegue(withIdentifier: Constants.Storyboard.locationSegue, sender: testPin)
+        let testPin = DropPinAnnotationView()
+        testPin.locationIdentifier = "12343567"
+        testPin.title = "Pirineos 2"
+        testPin.coordinate = CLLocationCoordinate2D(latitude: 7.773, longitude: -72.20238)
+        performSegue(withIdentifier: Constants.Storyboard.locationSegue, sender: testPin)
     }
     
     override func viewWillAppear(_ animated: Bool) {

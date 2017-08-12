@@ -16,7 +16,6 @@ class LocationController: UIViewController {
     var locationName: String?
     var locationCoordinates: CLLocationCoordinate2D?
     var photosSource:[[String:String]] = []
-    var isEmptyPhotoLocation: Bool?
     var pinLocationImagesPage:Int?
     
     @IBOutlet weak var detailedMapView: MKMapView!
@@ -26,8 +25,7 @@ class LocationController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = locationName
-        
+        navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: locationName!)
         let referralPin = MKPointAnnotation()
         referralPin.coordinate = locationCoordinates!
         detailedMapView.addAnnotation(referralPin)
@@ -56,7 +54,14 @@ class LocationController: UIViewController {
     
     func erasePicture(sender: UIGestureRecognizer) {
         if sender.state == .began {
-            
+            navigationController?.present(questionPopup(title: Constants.UIMessages.deletePictureTitle, message: Constants.UIMessages.deletePictureMessage, style: .alert, afirmativeAction: { [unowned self] _ in
+                let imageToDelete = sender.view as! PhotoCollectionViewCell
+                self.photosSource = self.photosSource.filter {
+                    $0[Constants.JSONResponseKey.photoId] != imageToDelete.photoId!
+                }
+                imageToDelete.cancelPhotoDownload()
+                self.photoCollectionView.reloadData()
+            }), animated: true)
         }
     }
     
@@ -83,49 +88,44 @@ class LocationController: UIViewController {
         ]
         
         DispatchQueue.global(qos: .userInteractive).async {
-            Networking.sharedInstance().taskForGETMethod(serverHost: Constants.URL.FlickrServer, serverPath: Constants.URL.APIpath, parameters: getPhotosParameters, isJSON: true, completionHandlerForGET: { [unowned self] (JSON, data, error) in
+            let _ = Networking.sharedInstance().taskForGETMethod(serverHost: Constants.URL.FlickrServer, serverPath: Constants.URL.APIpath, parameters: getPhotosParameters, isJSON: true, completionHandlerForGET: { [unowned self] (JSON, data, error) in
                 if let error = error {
                     print(error)
                     DispatchQueue.main.async {
-                        self.refreshCollectionList(extraLoad: false)
+                        self.refreshCollectionList(UIAvailability: (false, false))
                     }
                 } else {
                     guard let jsonResponse = JSON![Constants.JSONResponseKey.photos] as? [String: Any] else { return }
-                    print(jsonResponse)
-                    let moreImages = self.setImagesSource(results: jsonResponse)
                     DispatchQueue.main.async {
-                        self.refreshCollectionList(extraLoad: moreImages)
+                        let UIStates = self.setImagesSource(results: jsonResponse)
+                        self.refreshCollectionList(UIAvailability: UIStates)
                     }
                 }
             })
         }
     }
     
-    private func refreshCollectionList(extraLoad: Bool) {
-        photoCollectionView.reloadData()
-        UIView.animate(withDuration: 0.3, animations: {
-            self.loadingView.alpha = 0
-            self.photoCollectionView.alpha = self.isEmptyPhotoLocation ? 1 : 0
-        }, completion: { _ in
-            self.view.sendSubview(toBack: self.loadingView)
-            self.newCollectionButton.isEnabled = extraLoad
-        })
-    }
-    
-    private func setImagesSource(results: [String: Any]) -> Bool {
-        guard let photos = results[Constants.JSONResponseKey.image] as? [[String: Any]] else { return false }
+    private func setImagesSource(results: [String: Any]) -> (Bool, Bool) {
+        guard let photos = results[Constants.JSONResponseKey.image] as? [[String: Any]] else { return (false, false) }
         if photos.count > 0 {
             let _ = photos.map {
                 let newPhoto = [Constants.JSONResponseKey.photoId: $0[Constants.JSONResponseKey.photoId] as! String,Constants.JSONResponseKey.legend: $0[Constants.JSONResponseKey.legend] as! String, Constants.JSONResponseKey.sourceURL: $0[Constants.JSONResponseKey.sourceURL] as! String]
                 photosSource.append(newPhoto)
             }
         }
-        if let pages = results[Constants.JSONResponseKey.pages] as? Int, let total = results[Constants.JSONResponseKey.total] as? Int {
-            pinLocationImagesPage = pages
-            isEmptyPhotoLocation = total > 0
-            return pages > 1
-        }
-        return false
+        guard let pages = results[Constants.JSONResponseKey.pages] as? Int, let total = (results[Constants.JSONResponseKey.total] as? NSString)?.integerValue else { return (false, false) }
+        return (pages > 1, total > 0)
+    }
+    
+    private func refreshCollectionList(UIAvailability: (Bool, Bool)) {
+        photoCollectionView.reloadData()
+        UIView.animate(withDuration: 0.3, animations: {
+            self.loadingView.alpha = 0
+            self.photoCollectionView.alpha = UIAvailability.1 ? 1 : 0
+        }, completion: { _ in
+            self.view.sendSubview(toBack: self.loadingView)
+            self.newCollectionButton.isEnabled = UIAvailability.0
+        })
     }
 }
 
@@ -138,12 +138,9 @@ extension LocationController: UICollectionViewDelegate, UICollectionViewDataSour
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Constants.Storyboard.photoCell, for: indexPath) as! PhotoCollectionViewCell
         cell.setId(photosSource[indexPath.row][Constants.JSONResponseKey.photoId]!)
         cell.setLegend(photosSource[indexPath.row][Constants.JSONResponseKey.legend]!)
-        cell.setPhoto(photosSource[indexPath.row][Constants.JSONResponseKey.sourceURL]!)
-        if let _ = cell.gestureRecognizers {
-            let erasePhotoLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(erasePicture(sender:)))
-            erasePhotoLongPressGesture.minimumPressDuration = 0.35
-            cell.addGestureRecognizer(erasePhotoLongPressGesture)
-        }
+        let erasePhotoLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(erasePicture(sender:)))
+        erasePhotoLongPressGesture.minimumPressDuration = 0.3
+        cell.addGestureRecognizer(erasePhotoLongPressGesture)
         return cell
     }
     

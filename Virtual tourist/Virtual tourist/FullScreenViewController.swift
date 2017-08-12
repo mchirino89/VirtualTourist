@@ -19,7 +19,7 @@ class FullScreenViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = imageId
+        navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: imageId!)
         largeImageView.image = fullImage
         legendTextView.text = imageLegend
     }

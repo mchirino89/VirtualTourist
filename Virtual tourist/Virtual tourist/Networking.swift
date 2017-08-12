@@ -20,7 +20,7 @@ class Networking: NSObject {
     
     // MARK: GET
     
-    func taskForGETMethod(serverHost: String, serverPath: String, parameters: [String:AnyObject], isJSON: Bool, completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) {
+    func taskForGETMethod(serverHost: String, serverPath: String, parameters: [String:AnyObject], isJSON: Bool, completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) -> URLSessionTask {
         
         var request:NSMutableURLRequest?
         if isJSON {
@@ -31,7 +31,7 @@ class Networking: NSObject {
         }
         
         /* 4. Make the request */
-        session.dataTask(with: request! as URLRequest) { (data, response, error) in
+        let networkTask = session.dataTask(with: request! as URLRequest) { (data, response, error) in
             
             func sendError(_ error: String) {
                 print(error)
@@ -58,7 +58,9 @@ class Networking: NSObject {
             }
             
             self.convertDataWithCompletionHandler(data, dataType: isJSON, completionHandlerForConvertData: completionHandlerForGET)
-        }.resume()
+        }
+        networkTask.resume()
+        return networkTask
     }
     
     private func getURLStruct(URL: String) -> (String, String) {
