@@ -50,10 +50,10 @@
             </objects>
             <point key="canvasLocation" x="1068" y="-341"/>
         </scene>
-        <!--Location Controller-->
+        <!--Gallery Controller-->
         <scene sceneID="clK-3I-tr4">
             <objects>
-                <viewController id="atv-T1-7kF" customClass="LocationController" customModule="Virtual_tourist" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="atv-T1-7kF" customClass="GalleryController" customModule="Virtual_tourist" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="HeF-pl-wVU"/>
                         <viewControllerLayoutGuide type="bottom" id="lrY-gS-E0r"/>

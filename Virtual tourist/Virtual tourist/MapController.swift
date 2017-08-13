@@ -29,11 +29,11 @@ class MapController: UIViewController {
         
         // MARK: Testing purposes
         
-        let testPin = DropPinAnnotationView()
-        testPin.locationIdentifier = "12343567"
-        testPin.title = "Pirineos 2"
-        testPin.coordinate = CLLocationCoordinate2D(latitude: 7.773, longitude: -72.20238)
-        performSegue(withIdentifier: Constants.Storyboard.locationSegue, sender: testPin)
+//        let testPin = DropPinAnnotationView()
+//        testPin.locationIdentifier = "12343567"
+//        testPin.title = "Pirineos 2"
+//        testPin.coordinate = CLLocationCoordinate2D(latitude: 7.773, longitude: -72.20238)
+//        performSegue(withIdentifier: Constants.Storyboard.locationSegue, sender: testPin)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -61,7 +61,7 @@ class MapController: UIViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let selectedPin = sender as! DropPinAnnotationView
-        let detailedView = segue.destination as! LocationController
+        let detailedView = segue.destination as! GalleryController
         detailedView.locationIdentifier = selectedPin.locationIdentifier
         detailedView.locationName = selectedPin.title
         detailedView.locationCoordinates = selectedPin.coordinate

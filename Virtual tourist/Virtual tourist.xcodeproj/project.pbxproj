@@ -16,7 +16,7 @@
 		223505761F3A5E43001AB5A6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 223505751F3A5E43001AB5A6 /* Assets.xcassets */; };
 		223505791F3A5E43001AB5A6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 223505771F3A5E43001AB5A6 /* LaunchScreen.storyboard */; };
 		2267B8DC1F3D550C001AB8F8 /* Networking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2267B8DB1F3D550C001AB8F8 /* Networking.swift */; };
-		228AC9B21F3BC8E500DB3565 /* LocationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228AC9B11F3BC8E500DB3565 /* LocationController.swift */; };
+		228AC9B21F3BC8E500DB3565 /* GalleryController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228AC9B11F3BC8E500DB3565 /* GalleryController.swift */; };
 		228AC9B61F3BC9CE00DB3565 /* PhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228AC9B51F3BC9CE00DB3565 /* PhotoCollectionViewCell.swift */; };
 		228AC9B81F3BC9F300DB3565 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228AC9B71F3BC9F300DB3565 /* Constants.swift */; };
 		228AC9BA1F3BF39D00DB3565 /* DropPinAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228AC9B91F3BF39D00DB3565 /* DropPinAnnotationView.swift */; };
@@ -34,7 +34,7 @@
 		223505781F3A5E43001AB5A6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2235057A1F3A5E43001AB5A6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2267B8DB1F3D550C001AB8F8 /* Networking.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Networking.swift; sourceTree = "<group>"; };
-		228AC9B11F3BC8E500DB3565 /* LocationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationController.swift; sourceTree = "<group>"; };
+		228AC9B11F3BC8E500DB3565 /* GalleryController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GalleryController.swift; sourceTree = "<group>"; };
 		228AC9B51F3BC9CE00DB3565 /* PhotoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoCollectionViewCell.swift; sourceTree = "<group>"; };
 		228AC9B71F3BC9F300DB3565 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		228AC9B91F3BF39D00DB3565 /* DropPinAnnotationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropPinAnnotationView.swift; sourceTree = "<group>"; };
@@ -103,7 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				2235056D1F3A5E43001AB5A6 /* MapController.swift */,
-				228AC9B11F3BC8E500DB3565 /* LocationController.swift */,
+				228AC9B11F3BC8E500DB3565 /* GalleryController.swift */,
 				220961CC1F3E99A100B7F906 /* FullScreenViewController.swift */,
 			);
 			name = Controllers;
@@ -193,7 +193,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				228AC9B21F3BC8E500DB3565 /* LocationController.swift in Sources */,
+				228AC9B21F3BC8E500DB3565 /* GalleryController.swift in Sources */,
 				228AC9B61F3BC9CE00DB3565 /* PhotoCollectionViewCell.swift in Sources */,
 				2235056E1F3A5E43001AB5A6 /* MapController.swift in Sources */,
 				2267B8DC1F3D550C001AB8F8 /* Networking.swift in Sources */,

@@ -1,5 +1,5 @@
 //
-//  LocationController.swift
+//  GalleryController.swift
 //  Virtual tourist
 //
 //  Created by Mauricio Chirino on 9/8/17.
@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 
 
-class LocationController: UIViewController {
+class GalleryController: UIViewController {
     
     var locationIdentifier: String?
     var locationName: String?
@@ -25,7 +25,8 @@ class LocationController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: locationName!)
+//        navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: locationName!)
+        title = locationName!
         let referralPin = MKPointAnnotation()
         referralPin.coordinate = locationCoordinates!
         detailedMapView.addAnnotation(referralPin)
@@ -63,6 +64,8 @@ class LocationController: UIViewController {
     }
     
     @IBAction func newCollectionAction() {
+        Singleton.sharedInstance.appCache.removeAllObjects()
+        
         loadPinImages(page: Int(arc4random_uniform(UInt32(pinLocationImagesPage!))))
     }
     
@@ -111,6 +114,7 @@ class LocationController: UIViewController {
             }
         }
         guard let pages = results[Constants.JSONResponseKey.pages] as? Int, let total = (results[Constants.JSONResponseKey.total] as? NSString)?.integerValue else { return (false, false) }
+        pinLocationImagesPage = pages
         return (pages > 1, total > 0)
     }
     
@@ -126,7 +130,7 @@ class LocationController: UIViewController {
     }
 }
 
-extension LocationController: UICollectionViewDelegate, UICollectionViewDataSource {
+extension GalleryController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return photosSource.count
     }
