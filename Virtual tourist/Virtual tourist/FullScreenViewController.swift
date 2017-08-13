@@ -22,5 +22,6 @@ class FullScreenViewController: UIViewController {
         navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: imageId!)
         largeImageView.image = fullImage
         legendTextView.text = imageLegend
+        
     }
 }

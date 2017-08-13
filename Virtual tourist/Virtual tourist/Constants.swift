@@ -8,6 +8,8 @@
 
 import UIKit
 
+let updateGalleryNotification = Notification.Name(rawValue: Constants.Utilities.updateNotification)
+
 struct Constants {
     
     struct APIConfiguration {
@@ -82,17 +84,21 @@ struct Constants {
     }
     
     struct UIMessages {
-        static let mapTitle = "Tourism map"
         static let affirmative = "Yes"
         static let negative = "No"
         static let deletePictureTitle = "Delete picture"
         static let deletePictureMessage = "Are you sure you want to delete this picture from this album's location?"
+    }
+    
+    struct Utilities {
+        static let updateNotification = "com.3codegeeks.VirtualTourist.updateNotification"
     }
 }
 
 func getCustomTitle(viewTitle: String) -> UILabel {
     let titleLabel = UILabel()
     titleLabel.text = viewTitle
+    titleLabel.tintColor = .black
     titleLabel.font = UIFont(name: Constants.UIElements.customTitleFont, size: 21)
     titleLabel.sizeToFit()
     return titleLabel

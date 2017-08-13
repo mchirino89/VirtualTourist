@@ -20,7 +20,6 @@ class MapController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: Constants.UIMessages.mapTitle)
         locationManager.delegate = self
         locationManager.desiredAccuracy = 30
         locationManager.requestWhenInUseAuthorization()

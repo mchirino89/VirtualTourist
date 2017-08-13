@@ -37,6 +37,7 @@ class LocationController: UIViewController {
         layout.minimumInteritemSpacing = 8
         photoCollectionView.collectionViewLayout = layout
         loadPinImages(page: 1) // Initial load
+        NotificationCenter.default.addObserver(forName: updateGalleryNotification, object: nil, queue: nil, using: galleryUpdate)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -52,17 +53,13 @@ class LocationController: UIViewController {
         destination.imageLegend = selectedCell.photoLegend
     }
     
-    func erasePicture(sender: UIGestureRecognizer) {
-        if sender.state == .began {
-            navigationController?.present(questionPopup(title: Constants.UIMessages.deletePictureTitle, message: Constants.UIMessages.deletePictureMessage, style: .alert, afirmativeAction: { [unowned self] _ in
-                let imageToDelete = sender.view as! PhotoCollectionViewCell
-                self.photosSource = self.photosSource.filter {
-                    $0[Constants.JSONResponseKey.photoId] != imageToDelete.photoId!
-                }
-                imageToDelete.cancelPhotoDownload()
-                self.photoCollectionView.reloadData()
-            }), animated: true)
+    func galleryUpdate(notification: Notification) {
+        guard let deletedId = notification.object as? String else {
+            print("No cell id found in notification")
+            return
         }
+        photosSource = photosSource.filter { $0[Constants.JSONResponseKey.photoId] != deletedId }
+        photoCollectionView.reloadData()
     }
     
     @IBAction func newCollectionAction() {
@@ -138,9 +135,8 @@ extension LocationController: UICollectionViewDelegate, UICollectionViewDataSour
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Constants.Storyboard.photoCell, for: indexPath) as! PhotoCollectionViewCell
         cell.setId(photosSource[indexPath.row][Constants.JSONResponseKey.photoId]!)
         cell.setLegend(photosSource[indexPath.row][Constants.JSONResponseKey.legend]!)
-        let erasePhotoLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(erasePicture(sender:)))
-        erasePhotoLongPressGesture.minimumPressDuration = 0.3
-        cell.addGestureRecognizer(erasePhotoLongPressGesture)
+        cell.setPhoto(photosSource[indexPath.row][Constants.JSONResponseKey.sourceURL]!)
+        cell.setLongPressGesture(navigationController: navigationController!)
         return cell
     }
     

@@ -11,10 +11,7 @@ import UIKit
 class PhotoCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var thumbNailImage: UIImageView!
     @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
-    
     weak var referencedNavigationController: UINavigationController?
-    weak var photoCollectionReferenceView: UICollectionView?
-    var photosSourceReference:[[String:String]]?
     
     var photoId:String?
     var photoSourceURL:String?
@@ -61,9 +58,7 @@ class PhotoCollectionViewCell: UICollectionViewCell {
         photoDownloadTask?.cancel()
     }
     
-    func setLongPressGesture(photosSource:inout [[String:String]], photoGallery: UICollectionView, navigationController: UINavigationController) {
-        photoCollectionReferenceView = photoGallery
-        photosSourceReference = photosSource
+    func setLongPressGesture(navigationController: UINavigationController) {
         referencedNavigationController = navigationController
         let erasePhotoLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(erasePicture(sender:)))
         erasePhotoLongPressGesture.minimumPressDuration = 0.3
@@ -73,12 +68,8 @@ class PhotoCollectionViewCell: UICollectionViewCell {
     func erasePicture(sender: UIGestureRecognizer) {
         if sender.state == .began {
             referencedNavigationController?.present(questionPopup(title: Constants.UIMessages.deletePictureTitle, message: Constants.UIMessages.deletePictureMessage, style: .alert, afirmativeAction: { [unowned self] _ in
-                print(self.photosSourceReference!.count)
-                self.photosSourceReference = self.photosSourceReference?.filter {
-                   $0[Constants.JSONResponseKey.photoId] != (sender.view as! PhotoCollectionViewCell).photoId!
-                }
-                print(self.photosSourceReference!.count)
-                self.photoCollectionReferenceView?.reloadData()
+                self.cancelPhotoDownload()
+                NotificationCenter.default.post(name: updateGalleryNotification, object: (sender.view as! PhotoCollectionViewCell).photoId!, userInfo: nil)
             }), animated: true)
         }
     }
