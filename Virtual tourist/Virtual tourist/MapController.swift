@@ -8,6 +8,7 @@
 
 import UIKit
 import MapKit
+import CoreData
 import CoreLocation
 
 class MapController: UIViewController {
@@ -15,6 +16,21 @@ class MapController: UIViewController {
     @IBOutlet weak var touristMapView: MKMapView!
     var locationManager = CLLocationManager()
     let addressDecoder = CLGeocoder()
+    
+    var fetchedResultsController : NSFetchedResultsController<NSFetchRequestResult>? {
+        didSet {
+            // Whenever the frc changes
+            func executeSearch() {
+                if let fc = fetchedResultsController {
+                    do {
+                        try fc.performFetch()
+                    } catch let e as NSError {
+                        print("Error while trying to perform a search: \n\(e)\n\(String(describing: fetchedResultsController))")
+                    }
+                }
+            }
+        }
+    }
     
     @IBOutlet weak var mainMapView: MKMapView!
 
@@ -26,6 +42,27 @@ class MapController: UIViewController {
         let pinDropLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.addPinToMap(gesture:)))
         pinDropLongPressGesture.minimumPressDuration = 0.35
         touristMapView.addGestureRecognizer(pinDropLongPressGesture)
+        
+        // Get the stack
+        let delegate = UIApplication.shared.delegate as! AppDelegate
+        let stack = delegate.stack
+        
+        // Create a fetchrequest
+        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
+        fr.sortDescriptors = [NSSortDescriptor(key: "creation", ascending: true)]
+        
+        // Create the FetchedResultsController
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
+        
+        do {
+            let pinsSaved = try stack.context.fetch(fr)
+            let _ = pinsSaved.map {
+                print(($0 as! PinMO).latitude)
+            }
+            
+        } catch {
+            print("Error printing when returning")
+        }
         
         // MARK: Testing purposes
         
@@ -47,13 +84,20 @@ class MapController: UIViewController {
             pin.coordinate = touristMapView.convert(gesture.location(in: touristMapView), toCoordinateFrom: touristMapView)
             pin.subtitle = Date().description
             pin.locationIdentifier = Date().timeIntervalSince1970.description
+            
+//            let _ = PinMO(title: "testing", latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, context: self.fetchedResultsController!.managedObjectContext)
+            
             addressDecoder.reverseGeocodeLocation(CLLocation(latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude), completionHandler: {
                     [unowned self] (result, error) in
                 guard let address = result else { return }
-                let matchedPin = self.mainMapView.annotations.filter({
+                let matchedPin = self.mainMapView.annotations.filter {
                     !$0.isKind(of: MKUserLocation.self) && ($0 as! DropPinAnnotationView).locationIdentifier! == pin.locationIdentifier!
-                })
-                (matchedPin[0] as! DropPinAnnotationView).title = address[0].locality ?? address[0].name!
+                }
+                let title = address[0].locality ?? address[0].name!
+                (matchedPin[0] as! DropPinAnnotationView).title = title
+                
+                let persistentPin = PinMO(title: title, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, context: self.fetchedResultsController!.managedObjectContext)
+                print("Created: ", persistentPin)
             })
             touristMapView.addAnnotation(pin)
         }
