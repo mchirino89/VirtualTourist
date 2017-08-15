@@ -2,7 +2,7 @@
 //  PinMO+CoreDataProperties.swift
 //  Virtual tourist
 //
-//  Created by Mauricio Chirino on 13/8/17.
+//  Created by Mauricio Chirino on 14/8/17.
 //  Copyright © 2017 3CodeGeeks. All rights reserved.
 //
 
@@ -16,11 +16,11 @@ extension PinMO {
         return NSFetchRequest<PinMO>(entityName: "Pin")
     }
 
-    @NSManaged public var id: Int16
+    @NSManaged public var creation: NSDate?
     @NSManaged public var latitude: Double
     @NSManaged public var longitude: Double
     @NSManaged public var title: String?
-    @NSManaged public var creation: NSDate?
+    @NSManaged public var subtitle: String?
     @NSManaged public var photoId: NSSet?
 
 }

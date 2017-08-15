@@ -57,7 +57,8 @@ class MapController: UIViewController {
         do {
             let pinsSaved = try stack.context.fetch(fr)
             let _ = pinsSaved.map {
-                print(($0 as! PinMO).latitude)
+                let singlePin = $0 as! PinMO
+                let _ = setPinInfo(coordinate: CLLocationCoordinate2D(latitude: singlePin.latitude, longitude: singlePin.longitude), title: singlePin.title, subtitle: singlePin.subtitle, identifier: nil)
             }
             
         } catch {
@@ -80,27 +81,33 @@ class MapController: UIViewController {
     
     func addPinToMap(gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
-            let pin = DropPinAnnotationView()
-            pin.coordinate = touristMapView.convert(gesture.location(in: touristMapView), toCoordinateFrom: touristMapView)
-            pin.subtitle = Date().description
-            pin.locationIdentifier = Date().timeIntervalSince1970.description
             
-//            let _ = PinMO(title: "testing", latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, context: self.fetchedResultsController!.managedObjectContext)
+            let pin = setPinInfo(coordinate: touristMapView.convert(gesture.location(in: touristMapView), toCoordinateFrom: touristMapView), title: nil, subtitle: Date().description, identifier: Date().timeIntervalSince1970.description)
             
             addressDecoder.reverseGeocodeLocation(CLLocation(latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude), completionHandler: {
                     [unowned self] (result, error) in
                 guard let address = result else { return }
                 let matchedPin = self.mainMapView.annotations.filter {
-                    !$0.isKind(of: MKUserLocation.self) && ($0 as! DropPinAnnotationView).locationIdentifier! == pin.locationIdentifier!
+                    !$0.isKind(of: MKUserLocation.self) && ($0 as! DropPinAnnotationView).locationIdentifier == pin.locationIdentifier!
                 }
-                let title = address[0].locality ?? address[0].name!
+                let title = address[0].locality ?? address[0].name ?? address[0].areasOfInterest!.first
                 (matchedPin[0] as! DropPinAnnotationView).title = title
-                
-                let persistentPin = PinMO(title: title, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, context: self.fetchedResultsController!.managedObjectContext)
+                let persistentPin = PinMO(title: title!, subtitle: pin.subtitle!, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, creation: pin.creationDate, context: self.fetchedResultsController!.managedObjectContext)
                 print("Created: ", persistentPin)
             })
-            touristMapView.addAnnotation(pin)
+            
         }
+    }
+    
+    private func setPinInfo(coordinate: CLLocationCoordinate2D, title: String?, subtitle: String?, identifier: String?) -> DropPinAnnotationView {
+        let pin = DropPinAnnotationView()
+        pin.title = title
+        pin.subtitle = subtitle ?? pin.creationDate.description
+        pin.coordinate = coordinate
+        // Used for filtering Pins in map and direction naming afterwards
+        pin.locationIdentifier = identifier ?? pin.creationDate.timeIntervalSince1970.description
+        touristMapView.addAnnotation(pin)
+        return pin
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

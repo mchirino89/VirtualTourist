@@ -10,4 +10,5 @@ import MapKit
 
 class DropPinAnnotationView: MKPointAnnotation {
     var locationIdentifier: String?
+    let creationDate = NSDate()
 }

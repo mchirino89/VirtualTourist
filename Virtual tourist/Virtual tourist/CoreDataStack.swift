@@ -140,7 +140,6 @@ extension CoreDataStack {
                 self.persistingContext.perform() {
                     do {
                         try self.persistingContext.save()
-                        print("Saved in persistence")
                     } catch {
                         fatalError("Error while saving persisting context: \(error)")
                     }
@@ -150,18 +149,10 @@ extension CoreDataStack {
     }
     
     func autoSave(_ delayInSeconds : Int) {
-        
         if delayInSeconds > 0 {
-            do {
-                try context.save()
-                print("Autosaving")
-            } catch {
-                print("Error while autosaving")
-            }
-            
+            save()
             let delayInNanoSeconds = UInt64(delayInSeconds) * NSEC_PER_SEC
             let time = DispatchTime.now() + Double(Int64(delayInNanoSeconds)) / Double(NSEC_PER_SEC)
-            
             DispatchQueue.main.asyncAfter(deadline: time) {
                 self.autoSave(delayInSeconds)
             }
