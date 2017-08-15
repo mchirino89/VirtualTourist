@@ -81,6 +81,9 @@ struct Constants {
         static let generic = "There was an error with your request: "
         static let popupTitle = "Oops!"
         static let popupButton = "Ok"
+        static let pinCoreDataReading = "Error retrieving saved pins"
+        static let pinRemovalError = "Error deleting all pins"
+        static let handlerError = "Error while trying to perform a search: \n"
     }
     
     struct UIMessages {
@@ -88,10 +91,29 @@ struct Constants {
         static let negative = "No"
         static let deletePictureTitle = "Delete picture"
         static let deletePictureMessage = "Are you sure you want to delete this picture from this album's location?"
+        static let deletePinsTitle = "Locations removal"
+        static let deletePinsMessage = "Are you sure you want to delete ALL previously saved locations?"
     }
     
     struct Utilities {
         static let updateNotification = "com.3codegeeks.VirtualTourist.updateNotification"
+    }
+    
+    struct CoreData {
+        struct Pin {
+            static let entity = "Pin"
+            static let title = "title"
+            static let subtitle = "subtitle"
+            static let latitude = "latitude"
+            static let longitude = "longitude"
+            static let creation = "creation"
+        }
+        
+        struct Photo {
+            static let entity = "Photo"
+            static let image = "image"
+            static let legend = "legend"
+        }
     }
 }
 

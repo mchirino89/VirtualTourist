@@ -14,8 +14,11 @@ import CoreLocation
 class MapController: UIViewController {
     
     @IBOutlet weak var touristMapView: MKMapView!
+    @IBOutlet weak var deletePinButton: UIBarButtonItem!
+    
     var locationManager = CLLocationManager()
     let addressDecoder = CLGeocoder()
+    let stack = (UIApplication.shared.delegate as! AppDelegate).stack
     
     var fetchedResultsController : NSFetchedResultsController<NSFetchRequestResult>? {
         didSet {
@@ -25,7 +28,9 @@ class MapController: UIViewController {
                     do {
                         try fc.performFetch()
                     } catch let e as NSError {
-                        print("Error while trying to perform a search: \n\(e)\n\(String(describing: fetchedResultsController))")
+                        print(Constants.ErrorMessages.handlerError)
+                        print(e)
+                        print(fetchedResultsController?.description as Any)
                     }
                 }
             }
@@ -43,40 +48,23 @@ class MapController: UIViewController {
         pinDropLongPressGesture.minimumPressDuration = 0.35
         touristMapView.addGestureRecognizer(pinDropLongPressGesture)
         
-        // Get the stack
-        let delegate = UIApplication.shared.delegate as! AppDelegate
-        let stack = delegate.stack
-        
         // Create a fetchrequest
-        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
-        fr.sortDescriptors = [NSSortDescriptor(key: "creation", ascending: true)]
+        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.CoreData.Pin.entity)
+        fr.sortDescriptors = [NSSortDescriptor(key: Constants.CoreData.Pin.creation, ascending: true)]
         
         // Create the FetchedResultsController
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
         
         do {
-            let pinsSaved = try stack.context.fetch(fr)
+            let pinsSaved = try stack.context.fetch(fr) as! [PinMO]
+            deletePinButton.isEnabled = !pinsSaved.isEmpty
             let _ = pinsSaved.map {
-                let singlePin = $0 as! PinMO
+                let singlePin = $0
                 let _ = setPinInfo(coordinate: CLLocationCoordinate2D(latitude: singlePin.latitude, longitude: singlePin.longitude), title: singlePin.title, subtitle: singlePin.subtitle, identifier: nil)
             }
-            
         } catch {
-            print("Error printing when returning")
+            print(Constants.ErrorMessages.pinCoreDataReading)
         }
-        
-        // MARK: Testing purposes
-        
-//        let testPin = DropPinAnnotationView()
-//        testPin.locationIdentifier = "12343567"
-//        testPin.title = "Pirineos 2"
-//        testPin.coordinate = CLLocationCoordinate2D(latitude: 7.773, longitude: -72.20238)
-//        performSegue(withIdentifier: Constants.Storyboard.locationSegue, sender: testPin)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: true)
     }
     
     func addPinToMap(gesture: UILongPressGestureRecognizer) {
@@ -90,10 +78,11 @@ class MapController: UIViewController {
                 let matchedPin = self.mainMapView.annotations.filter {
                     !$0.isKind(of: MKUserLocation.self) && ($0 as! DropPinAnnotationView).locationIdentifier == pin.locationIdentifier!
                 }
-                let title = address[0].locality ?? address[0].name ?? address[0].areasOfInterest!.first
+                let title = address[0].locality ?? address[0].areasOfInterest!.first ?? address[0].name
                 (matchedPin[0] as! DropPinAnnotationView).title = title
                 let persistentPin = PinMO(title: title!, subtitle: pin.subtitle!, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, creation: pin.creationDate, context: self.fetchedResultsController!.managedObjectContext)
-                print("Created: ", persistentPin)
+                self.deletePinButton.isEnabled = true
+                print(persistentPin)
             })
             
         }
@@ -117,7 +106,17 @@ class MapController: UIViewController {
         detailedView.locationName = selectedPin.title
         detailedView.locationCoordinates = selectedPin.coordinate
     }
-
+    
+    @IBAction func deletePinAction(_ sender: Any) {
+        navigationController?.present(questionPopup(title: Constants.UIMessages.deletePinsTitle, message: Constants.UIMessages.deletePinsMessage, style: .alert, afirmativeAction: { [unowned self] _ in
+            do {
+                self.touristMapView.removeAnnotations(self.touristMapView.annotations)
+                try self.stack.dropAllData()
+            } catch {
+                print(Constants.ErrorMessages.pinRemovalError)
+            }
+        }), animated: true)
+    }
 }
 
 extension MapController: MKMapViewDelegate {
@@ -147,25 +146,7 @@ extension MapController: MKMapViewDelegate {
 
 extension MapController: CLLocationManagerDelegate {
     
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        switch status {
-        case CLAuthorizationStatus.restricted:
-            break
-        case CLAuthorizationStatus.denied:
-            break
-        case CLAuthorizationStatus.notDetermined:
-            break
-        default:
-            break
-        }
-    }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {}
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
     
 }

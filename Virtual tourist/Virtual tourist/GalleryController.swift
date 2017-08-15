@@ -41,11 +41,6 @@ class GalleryController: UIViewController {
         NotificationCenter.default.addObserver(forName: updateGalleryNotification, object: nil, queue: nil, using: galleryUpdate)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: true)
-    }
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard let destination = segue.destination as? FullScreenViewController else { return }
         guard let selectedCell = sender as? PhotoCollectionViewCell else { return }

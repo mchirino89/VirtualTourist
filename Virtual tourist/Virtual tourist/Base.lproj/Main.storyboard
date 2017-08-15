@@ -23,7 +23,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" showsUserLocation="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dpO-MM-TMf">
-                                <rect key="frame" x="0.0" y="20" width="375" height="647"/>
+                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
                                 <gestureRecognizers/>
                                 <connections>
                                     <outlet property="delegate" destination="BYZ-38-t0r" id="jEM-4v-8ue"/>
@@ -38,9 +38,15 @@
                             <constraint firstItem="dpO-MM-TMf" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="yz5-hb-3JE"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="sfI-aA-h97"/>
-                    <nil key="simulatedTopBarMetrics"/>
+                    <navigationItem key="navigationItem" id="sfI-aA-h97">
+                        <barButtonItem key="leftBarButtonItem" systemItem="trash" id="cCS-RI-V27">
+                            <connections>
+                                <action selector="deletePinAction:" destination="BYZ-38-t0r" id="ixH-yp-FMa"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
+                        <outlet property="deletePinButton" destination="cCS-RI-V27" id="Mie-4b-n5I"/>
                         <outlet property="mainMapView" destination="dpO-MM-TMf" id="AYW-k8-SxQ"/>
                         <outlet property="touristMapView" destination="dpO-MM-TMf" id="PUs-8q-n3C"/>
                         <segue destination="atv-T1-7kF" kind="show" identifier="locationSegue" id="53J-ut-3ig"/>
