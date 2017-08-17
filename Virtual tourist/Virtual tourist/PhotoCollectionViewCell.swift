@@ -7,46 +7,41 @@
 //
 
 import UIKit
+import CoreData
 
 class PhotoCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var thumbNailImage: UIImageView!
     @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
     weak var referencedNavigationController: UINavigationController?
+    weak var referralPhoto:PhotoMO?
     
-    var photoId:String?
     var photoSourceURL:String?
     var photoLegend:String?
     var photoDownloadTask:URLSessionTask?
     
-    func setId(_ id: String) {
-        photoId = id
-    }
-    
-    func setLegend(_ legend: String) {
-        photoLegend = legend
-    }
-    
-    func setPhoto(_ sourceURL: String) {
-        photoSourceURL = sourceURL
-        if let image = Singleton.sharedInstance.appCache.object(forKey: sourceURL as AnyObject) as? UIImage {
-            thumbNailImage.image = image
+    func setPhoto(referralPhoto: PhotoMO) {
+        self.referralPhoto = referralPhoto
+        photoLegend = referralPhoto.legend
+        photoSourceURL = referralPhoto.sourceURL
+        if let data = referralPhoto.image {
+            thumbNailImage.image = UIImage(data: data as Data)
             downloadActivityIndicator.stopAnimating()
         } else {
-            photoDownloadTask = Networking.sharedInstance().taskForGETMethod(serverHost: sourceURL, serverPath: "", parameters: [:], isJSON: false, completionHandlerForGET: {
+            photoDownloadTask = Networking.sharedInstance().taskForGETMethod(serverHost: referralPhoto.sourceURL!, serverPath: "", parameters: [:], isJSON: false, completionHandlerForGET: {
                 [unowned self] (JSON, data, error) in
                 if let error = error {
                     print(error)
                     DispatchQueue.main.async {
                         self.downloadActivityIndicator.stopAnimating()
-                        Singleton.sharedInstance.appCache.setObject(UIImage(), forKey: sourceURL as AnyObject)
+                        referralPhoto.image = NSData()
                     }
                 } else {
                     DispatchQueue.main.async {
                         let downloadedImage = UIImage(data: data!)
-                        if self.photoSourceURL == sourceURL {
+                        if self.photoSourceURL == referralPhoto.sourceURL {
                             self.thumbNailImage.image = downloadedImage
                         }
-                        Singleton.sharedInstance.appCache.setObject(downloadedImage!, forKey: sourceURL as AnyObject)
+                        referralPhoto.image = data! as NSData
                         self.downloadActivityIndicator.stopAnimating()
                     }
                 }
@@ -69,7 +64,7 @@ class PhotoCollectionViewCell: UICollectionViewCell {
         if sender.state == .began {
             referencedNavigationController?.present(questionPopup(title: Constants.UIMessages.deletePictureTitle, message: Constants.UIMessages.deletePictureMessage, style: .alert, afirmativeAction: { [unowned self] _ in
                 self.cancelPhotoDownload()
-                NotificationCenter.default.post(name: updateGalleryNotification, object: (sender.view as! PhotoCollectionViewCell).photoId!, userInfo: nil)
+                NotificationCenter.default.post(name: updateGalleryNotification, object: self.referralPhoto!, userInfo: nil)
             }), animated: true)
         }
     }

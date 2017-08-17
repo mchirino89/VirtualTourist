@@ -20,7 +20,7 @@ struct Constants {
     struct ParameterKey {
         static let method = "method"
         static let APIKey = "api_key"
-        static let latitud = "lat"
+        static let latitude = "lat"
         static let longitude = "lon"
         static let extra = "extras"
         static let results = "per_page"
@@ -82,8 +82,18 @@ struct Constants {
         static let popupTitle = "Oops!"
         static let popupButton = "Ok"
         static let pinCoreDataReading = "Error retrieving saved pins"
-        static let pinRemovalError = "Error deleting all pins"
-        static let handlerError = "Error while trying to perform a search: \n"
+        static let pinRemoval = "Error deleting all pins"
+        static let searchHandler = "Error while trying to perform a search: "
+        static let noEntity = "Unable to find entity: "
+        static let noModel = "Unabel to find this model in the main bundle: "
+        static let noCreation = "Unable to create a model from:"
+        static let noFolder = "Unable to reach the documents folder"
+        static let noStore = "Unable to add store at"
+        static let noBackgroundContext = "Error while saving backgroundContext:"
+        static let noMainContext = "Error while saving main context:"
+        static let noPersistingContext = "Error while saving persisting context:"
+        static let photoDeletion = "Error deleting saved photos from album"
+        static let noCellFound = "No match found for this deletion in notification"
     }
     
     struct UIMessages {
@@ -113,6 +123,12 @@ struct Constants {
             static let entity = "Photo"
             static let image = "image"
             static let legend = "legend"
+        }
+        
+        struct Config {
+            static let model = "Virtual_tourist"
+            static let modelExtension = "momd"
+            static let db = "model.sqlite"
         }
     }
 }

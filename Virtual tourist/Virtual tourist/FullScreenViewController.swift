@@ -10,7 +10,6 @@ import UIKit
 
 class FullScreenViewController: UIViewController {
 
-    var imageId:String?
     var fullImage: UIImage?
     var imageLegend: String?
     
@@ -20,9 +19,7 @@ class FullScreenViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 //        navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: imageId!)
-        title = imageId
         largeImageView.image = fullImage
         legendTextView.text = imageLegend
-        
     }
 }

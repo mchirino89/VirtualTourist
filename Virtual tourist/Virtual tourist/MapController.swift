@@ -15,11 +15,13 @@ class MapController: UIViewController {
     
     @IBOutlet weak var touristMapView: MKMapView!
     @IBOutlet weak var deletePinButton: UIBarButtonItem!
+    @IBOutlet weak var mainMapView: MKMapView!
     
-    var locationManager = CLLocationManager()
     let addressDecoder = CLGeocoder()
     let stack = (UIApplication.shared.delegate as! AppDelegate).stack
     
+    var locationManager = CLLocationManager()
+    let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.CoreData.Pin.entity)
     var fetchedResultsController : NSFetchedResultsController<NSFetchRequestResult>? {
         didSet {
             // Whenever the frc changes
@@ -28,7 +30,7 @@ class MapController: UIViewController {
                     do {
                         try fc.performFetch()
                     } catch let e as NSError {
-                        print(Constants.ErrorMessages.handlerError)
+                        print(Constants.ErrorMessages.searchHandler)
                         print(e)
                         print(fetchedResultsController?.description as Any)
                     }
@@ -36,8 +38,6 @@ class MapController: UIViewController {
             }
         }
     }
-    
-    @IBOutlet weak var mainMapView: MKMapView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,43 +48,30 @@ class MapController: UIViewController {
         pinDropLongPressGesture.minimumPressDuration = 0.35
         touristMapView.addGestureRecognizer(pinDropLongPressGesture)
         
-        // Create a fetchrequest
-        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.CoreData.Pin.entity)
-        fr.sortDescriptors = [NSSortDescriptor(key: Constants.CoreData.Pin.creation, ascending: true)]
+        // Configure a FetchRequest
+        
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: Constants.CoreData.Pin.creation, ascending: true)]
         
         // Create the FetchedResultsController
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
-        
-        do {
-            let pinsSaved = try stack.context.fetch(fr) as! [PinMO]
-            deletePinButton.isEnabled = !pinsSaved.isEmpty
-            let _ = pinsSaved.map {
-                let singlePin = $0
-                let _ = setPinInfo(coordinate: CLLocationCoordinate2D(latitude: singlePin.latitude, longitude: singlePin.longitude), title: singlePin.title, subtitle: singlePin.subtitle, identifier: nil)
-            }
-        } catch {
-            print(Constants.ErrorMessages.pinCoreDataReading)
-        }
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
     }
     
     func addPinToMap(gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
-            
             let pin = setPinInfo(coordinate: touristMapView.convert(gesture.location(in: touristMapView), toCoordinateFrom: touristMapView), title: nil, subtitle: Date().description, identifier: Date().timeIntervalSince1970.description)
             
             addressDecoder.reverseGeocodeLocation(CLLocation(latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude), completionHandler: {
                     [unowned self] (result, error) in
                 guard let address = result else { return }
-                let matchedPin = self.mainMapView.annotations.filter {
-                    !$0.isKind(of: MKUserLocation.self) && ($0 as! DropPinAnnotationView).locationIdentifier == pin.locationIdentifier!
-                }
-                let title = address[0].locality ?? address[0].areasOfInterest!.first ?? address[0].name
-                (matchedPin[0] as! DropPinAnnotationView).title = title
-                let persistentPin = PinMO(title: title!, subtitle: pin.subtitle!, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, creation: pin.creationDate, context: self.fetchedResultsController!.managedObjectContext)
+                let matchedPin = self.mainMapView.annotations.first(where: {
+                    !$0.isKind(of: MKUserLocation.self) &&
+                    ($0 as! DropPinAnnotationView).locationIdentifier == pin.locationIdentifier!
+                })
+                let title = address[0].locality ?? address[0].name
+                (matchedPin as! DropPinAnnotationView).title = title
+                let _ = PinMO(identifier: pin.locationIdentifier!, title: title!, subtitle: pin.subtitle!, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, creation: pin.creationDate, context: self.fetchedResultsController!.managedObjectContext)
                 self.deletePinButton.isEnabled = true
-                print(persistentPin)
             })
-            
         }
     }
     
@@ -99,23 +86,50 @@ class MapController: UIViewController {
         return pin
     }
     
+    func loadSavedPins() {
+        do {
+            let pinsSaved = try stack.context.fetch(fetchRequest) as! [PinMO]
+            deletePinButton.isEnabled = !pinsSaved.isEmpty
+            let _ = pinsSaved.map {
+                let singlePin = $0
+                let _ = setPinInfo(coordinate: CLLocationCoordinate2D(latitude: singlePin.latitude, longitude: singlePin.longitude), title: singlePin.title, subtitle: singlePin.subtitle, identifier: singlePin.identifier)
+            }
+        } catch {
+            print(Constants.ErrorMessages.pinCoreDataReading)
+        }
+    }
+    
+    func getSelectedPin(referralPin: DropPinAnnotationView) -> PinMO? {
+        do {
+            let pinsSaved = try stack.context.fetch(fetchRequest) as! [PinMO]
+            // How could i do this with a NSPredicate? 
+            return pinsSaved.first(where: { $0.identifier! == referralPin.locationIdentifier! })
+        } catch {
+            print(Constants.ErrorMessages.pinCoreDataReading)
+            return nil
+        }
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        let selectedPin = sender as! DropPinAnnotationView
         let detailedView = segue.destination as! GalleryController
-        detailedView.locationIdentifier = selectedPin.locationIdentifier
-        detailedView.locationName = selectedPin.title
-        detailedView.locationCoordinates = selectedPin.coordinate
+        detailedView.referralPin = sender as? PinMO
     }
     
     @IBAction func deletePinAction(_ sender: Any) {
-        navigationController?.present(questionPopup(title: Constants.UIMessages.deletePinsTitle, message: Constants.UIMessages.deletePinsMessage, style: .alert, afirmativeAction: { [unowned self] _ in
-            do {
-                self.touristMapView.removeAnnotations(self.touristMapView.annotations)
-                try self.stack.dropAllData()
-            } catch {
-                print(Constants.ErrorMessages.pinRemovalError)
+        navigationController?.present(questionPopup(
+            title: Constants.UIMessages.deletePinsTitle,
+            message: Constants.UIMessages.deletePinsMessage,
+            style: .alert,
+            afirmativeAction: {
+                [unowned self] _ in
+                do {
+                    self.touristMapView.removeAnnotations(self.touristMapView.annotations)
+                    try self.stack.dropAllData()
+                } catch {
+                    print(Constants.ErrorMessages.pinRemoval)
+                }
             }
-        }), animated: true)
+        ), animated: true)
     }
 }
 
@@ -128,7 +142,7 @@ extension MapController: MKMapViewDelegate {
                 pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: Constants.UIElements.mapPinId)
                 pinView!.animatesDrop = true
                 pinView!.canShowCallout = true
-                pinView!.pinTintColor = .red
+                pinView!.pinTintColor = .blue
                 pinView!.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
             } else {
                 pinView!.annotation = annotation
@@ -139,7 +153,14 @@ extension MapController: MKMapViewDelegate {
     }
     
     func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
-        performSegue(withIdentifier: Constants.Storyboard.locationSegue, sender: view.annotation as! DropPinAnnotationView)
+        let selectedPinInMap = view.annotation as! DropPinAnnotationView
+        performSegue(withIdentifier: Constants.Storyboard.locationSegue, sender: getSelectedPin(referralPin: selectedPinInMap))
+    }
+    
+    func mapViewDidFinishLoadingMap(_ mapView: MKMapView) {
+        if mapView.annotations.isEmpty {
+            loadSavedPins()
+        }
     }
     
 }

@@ -8,29 +8,37 @@
 
 import UIKit
 import MapKit
-
+import CoreData
 
 class GalleryController: UIViewController {
     
-    var locationIdentifier: String?
-    var locationName: String?
-    var locationCoordinates: CLLocationCoordinate2D?
-    var photosSource:[[String:String]] = []
     var pinLocationImagesPage:Int?
+    var referralPin:PinMO!
     
     @IBOutlet weak var detailedMapView: MKMapView!
     @IBOutlet weak var loadingView: UIView!
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var photoCollectionView: UICollectionView!
     
+    let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.CoreData.Photo.entity)
+    let stack = (UIApplication.shared.delegate as! AppDelegate).stack
+    var fetchedResultsController : NSFetchedResultsController<NSFetchRequestResult>? {
+        didSet {
+            // Whenever the frc changes, we execute the search and
+            // reload the collection
+            fetchedResultsController?.delegate = photoCollectionView.delegate as? NSFetchedResultsControllerDelegate
+            executeSearch()
+            photoCollectionView.reloadData()
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-//        navigationController?.navigationItem.titleView = getCustomTitle(viewTitle: locationName!)
-        title = locationName!
-        let referralPin = MKPointAnnotation()
-        referralPin.coordinate = locationCoordinates!
-        detailedMapView.addAnnotation(referralPin)
-        detailedMapView.setRegion(MKCoordinateRegion(center: locationCoordinates!, span: MKCoordinateSpan(latitudeDelta: 1.25, longitudeDelta: 1.25)), animated: true)
+        title = referralPin.title
+        let referralPinInMap = MKPointAnnotation()
+        referralPinInMap.coordinate = CLLocationCoordinate2D(latitude: referralPin.latitude, longitude: referralPin.longitude)
+        detailedMapView.addAnnotation(referralPinInMap)
+        detailedMapView.setRegion(MKCoordinateRegion(center: referralPinInMap.coordinate, span: MKCoordinateSpan(latitudeDelta: 1.25, longitudeDelta: 1.25)), animated: true)
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         layout.sectionInset = UIEdgeInsets(top: 5, left: 0, bottom: 8, right: 0)
         layout.itemSize = CGSize(width: (view.bounds.width / 3) - 8, height: (view.bounds.width / 3) - 8)
@@ -39,42 +47,44 @@ class GalleryController: UIViewController {
         photoCollectionView.collectionViewLayout = layout
         loadPinImages(page: 1) // Initial load
         NotificationCenter.default.addObserver(forName: updateGalleryNotification, object: nil, queue: nil, using: galleryUpdate)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: Constants.CoreData.Photo.legend, ascending: true)]
+        
+        // Create the FetchedResultsController
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard let destination = segue.destination as? FullScreenViewController else { return }
         guard let selectedCell = sender as? PhotoCollectionViewCell else { return }
-        destination.imageId = selectedCell.photoId
         destination.fullImage = selectedCell.thumbNailImage.image
         destination.imageLegend = selectedCell.photoLegend
     }
     
     func galleryUpdate(notification: Notification) {
-        guard let deletedId = notification.object as? String else {
-            print("No cell id found in notification")
+        guard let deletedId = notification.object as? PhotoMO else {
+            print(Constants.ErrorMessages.noCellFound)
             return
         }
-        photosSource = photosSource.filter { $0[Constants.JSONResponseKey.photoId] != deletedId }
-        photoCollectionView.reloadData()
+        photoRemoval(referralPhoto: deletedId)
     }
     
     @IBAction func newCollectionAction() {
         Singleton.sharedInstance.appCache.removeAllObjects()
-        
         loadPinImages(page: Int(arc4random_uniform(UInt32(pinLocationImagesPage!))))
     }
     
     private func loadPinImages(page: Int) {
         
-        photosSource.removeAll()
+        photoRemoval()
+        
         loadingView.alpha = 0.6
         view.bringSubview(toFront: loadingView)
         
         let getPhotosParameters:[String:AnyObject] = [
             Constants.ParameterKey.method: Constants.ParameterValue.method as AnyObject,
             Constants.ParameterKey.APIKey: Constants.ParameterValue.APIKey as AnyObject,
-            Constants.ParameterKey.latitud: locationCoordinates!.latitude as AnyObject,
-            Constants.ParameterKey.longitude: locationCoordinates!.longitude as AnyObject,
+            Constants.ParameterKey.latitude: referralPin.latitude as AnyObject,
+            Constants.ParameterKey.longitude: referralPin.longitude as AnyObject,
             Constants.ParameterKey.format: Constants.ParameterValue.format as AnyObject,
             Constants.ParameterKey.results: Constants.ParameterValue.results as AnyObject,
             Constants.ParameterKey.extra: Constants.ParameterValue.extra as AnyObject,
@@ -82,30 +92,30 @@ class GalleryController: UIViewController {
             Constants.ParameterKey.currentPage: page as AnyObject
         ]
         
-        DispatchQueue.global(qos: .userInteractive).async {
-            let _ = Networking.sharedInstance().taskForGETMethod(serverHost: Constants.URL.FlickrServer, serverPath: Constants.URL.APIpath, parameters: getPhotosParameters, isJSON: true, completionHandlerForGET: { [unowned self] (JSON, data, error) in
-                if let error = error {
-                    print(error)
-                    DispatchQueue.main.async {
-                        self.refreshCollectionList(UIAvailability: (false, false))
-                    }
-                } else {
-                    guard let jsonResponse = JSON![Constants.JSONResponseKey.photos] as? [String: Any] else { return }
-                    DispatchQueue.main.async {
-                        let UIStates = self.setImagesSource(results: jsonResponse)
-                        self.refreshCollectionList(UIAvailability: UIStates)
-                    }
+        let _ = Networking.sharedInstance().taskForGETMethod(serverHost: Constants.URL.FlickrServer, serverPath: Constants.URL.APIpath, parameters: getPhotosParameters, isJSON: true, completionHandlerForGET: { [unowned self] (JSON, data, error) in
+            if let error = error {
+                print(error)
+                DispatchQueue.main.async {
+                    self.refreshCollectionList(UIAvailability: (false, false))
                 }
-            })
-        }
+            } else {
+                guard let jsonResponse = JSON![Constants.JSONResponseKey.photos] as? [String: Any] else { return }
+                DispatchQueue.main.async {
+                    let UIStates = self.setImagesSource(results: jsonResponse)
+                    self.refreshCollectionList(UIAvailability: UIStates)
+                }
+            }
+        })
     }
     
     private func setImagesSource(results: [String: Any]) -> (Bool, Bool) {
         guard let photos = results[Constants.JSONResponseKey.image] as? [[String: Any]] else { return (false, false) }
         if photos.count > 0 {
             let _ = photos.map {
-                let newPhoto = [Constants.JSONResponseKey.photoId: $0[Constants.JSONResponseKey.photoId] as! String,Constants.JSONResponseKey.legend: $0[Constants.JSONResponseKey.legend] as! String, Constants.JSONResponseKey.sourceURL: $0[Constants.JSONResponseKey.sourceURL] as! String]
-                photosSource.append(newPhoto)
+                let sourceURL = $0[Constants.JSONResponseKey.sourceURL] as! String
+                let legend = $0[Constants.JSONResponseKey.legend] as! String
+                let addedPhoto = PhotoMO(sourceURL: sourceURL, legend: legend, context: fetchedResultsController!.managedObjectContext)
+                addedPhoto.pinId = referralPin
             }
         }
         guard let pages = results[Constants.JSONResponseKey.pages] as? Int, let total = (results[Constants.JSONResponseKey.total] as? NSString)?.integerValue else { return (false, false) }
@@ -114,7 +124,6 @@ class GalleryController: UIViewController {
     }
     
     private func refreshCollectionList(UIAvailability: (Bool, Bool)) {
-        photoCollectionView.reloadData()
         UIView.animate(withDuration: 0.3, animations: {
             self.loadingView.alpha = 0
             self.photoCollectionView.alpha = UIAvailability.1 ? 1 : 0
@@ -123,23 +132,52 @@ class GalleryController: UIViewController {
             self.newCollectionButton.isEnabled = UIAvailability.0
         })
     }
+    
+    private func photoRemoval(referralPhoto: PhotoMO? = nil) {
+        if let photoDeleted = referralPhoto {
+            stack.context.delete(photoDeleted)
+        } else {
+            do {
+                let photosSaved = try stack.context.fetch(fetchRequest) as! [PhotoMO]
+                let _ = photosSaved.map { stack.context.delete($0) }
+            } catch {
+                print(Constants.ErrorMessages.photoDeletion)
+            }
+        }
+    }
+    
+    func executeSearch() {
+        if let fc = fetchedResultsController {
+            do {
+                try fc.performFetch()
+            } catch let e as NSError {
+                print(Constants.ErrorMessages.searchHandler)
+                print(e)
+                print(fetchedResultsController?.description as Any)
+            }
+        }
+    }
 }
 
 extension GalleryController: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return photosSource.count
-    }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let photo = fetchedResultsController?.object(at: indexPath) as! PhotoMO
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Constants.Storyboard.photoCell, for: indexPath) as! PhotoCollectionViewCell
-        cell.setId(photosSource[indexPath.row][Constants.JSONResponseKey.photoId]!)
-        cell.setLegend(photosSource[indexPath.row][Constants.JSONResponseKey.legend]!)
-        cell.setPhoto(photosSource[indexPath.row][Constants.JSONResponseKey.sourceURL]!)
+        cell.setPhoto(referralPhoto: photo)
         cell.setLongPressGesture(navigationController: navigationController!)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         performSegue(withIdentifier: Constants.Storyboard.fullScreenSegue, sender: (collectionView.cellForItem(at: indexPath) as! PhotoCollectionViewCell))
+    }
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return fetchedResultsController != nil ? fetchedResultsController!.sections!.count : 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return fetchedResultsController != nil ? fetchedResultsController!.sections![section].numberOfObjects : 0
     }
 }

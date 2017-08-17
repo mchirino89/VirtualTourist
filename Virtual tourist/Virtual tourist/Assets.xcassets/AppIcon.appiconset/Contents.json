@@ -33,13 +33,13 @@
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "u_120-1.png",
+      "filename" : "VirtualTourist_120-1.png",
       "scale" : "2x"
     },
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "u_180.png",
+      "filename" : "VirtualTourist_180-1.png",
       "scale" : "3x"
     },
     {
@@ -75,31 +75,31 @@
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "u_76x76-1.png",
+      "filename" : "VirtualTourist_76.png",
       "scale" : "1x"
     },
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "u_76x76@2x-1.png",
+      "filename" : "VirtualTourist_152.png",
       "scale" : "2x"
     },
     {
       "size" : "83.5x83.5",
       "idiom" : "ipad",
-      "filename" : "u_83.5x83-1.png",
+      "filename" : "VirtualTourist_84.png",
       "scale" : "2x"
     },
     {
       "size" : "60x60",
       "idiom" : "car",
-      "filename" : "u_120.png",
+      "filename" : "VirtualTourist_120.png",
       "scale" : "2x"
     },
     {
       "size" : "60x60",
       "idiom" : "car",
-      "filename" : "u_180-1.png",
+      "filename" : "VirtualTourist_180.png",
       "scale" : "3x"
     }
   ],

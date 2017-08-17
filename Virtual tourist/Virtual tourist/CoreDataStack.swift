@@ -27,15 +27,15 @@ struct CoreDataStack {
     init?(modelName: String) {
         
         // Assumes the model is in the main bundle
-        guard let modelURL = Bundle.main.url(forResource: modelName, withExtension: "momd") else {
-            print("Unable to find \(modelName)in the main bundle")
+        guard let modelURL = Bundle.main.url(forResource: modelName, withExtension: Constants.CoreData.Config.modelExtension) else {
+            print("\(Constants.ErrorMessages.noModel) \(modelName)")
             return nil
         }
         self.modelURL = modelURL
         
         // Try to create the model from the URL
         guard let model = NSManagedObjectModel(contentsOf: modelURL) else {
-            print("unable to create a model from \(modelURL)")
+            print("\(Constants.ErrorMessages.noCreation) \(modelURL)")
             return nil
         }
         self.model = model
@@ -59,11 +59,11 @@ struct CoreDataStack {
         let fm = FileManager.default
         
         guard let docUrl = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            print("Unable to reach the documents folder")
+            print(Constants.ErrorMessages.noFolder)
             return nil
         }
         
-        self.dbURL = docUrl.appendingPathComponent("model.sqlite")
+        self.dbURL = docUrl.appendingPathComponent(Constants.CoreData.Config.db)
         
         // Options for migration
         let options = [NSInferMappingModelAutomaticallyOption: true,NSMigratePersistentStoresAutomaticallyOption: true]
@@ -71,7 +71,7 @@ struct CoreDataStack {
         do {
             try addStoreCoordinator(NSSQLiteStoreType, configuration: nil, storeURL: dbURL, options: options as [NSObject : AnyObject]?)
         } catch {
-            print("unable to add store at \(dbURL)")
+            print("\(Constants.ErrorMessages.noStore) \(dbURL)")
         }
     }
     
@@ -101,17 +101,13 @@ extension CoreDataStack {
     typealias Batch = (_ workerContext: NSManagedObjectContext) -> ()
     
     func performBackgroundBatchOperation(_ batch: @escaping Batch) {
-        
         backgroundContext.perform() {
-            
             batch(self.backgroundContext)
-            
-            // Save it to the parent context, so normal saving
-            // can work
+            // Save it to the parent context, so normal saving can work
             do {
                 try self.backgroundContext.save()
             } catch {
-                fatalError("Error while saving backgroundContext: \(error)")
+                fatalError("\(Constants.ErrorMessages.noBackgroundContext) \(error)")
             }
         }
     }
@@ -122,26 +118,23 @@ extension CoreDataStack {
 extension CoreDataStack {
     
     func save() {
-        // We call this synchronously, but it's a very fast
-        // operation (it doesn't hit the disk). We need to know
-        // when it ends so we can call the next save (on the persisting
-        // context). This last one might take some time and is done
-        // in a background queue
+        // We call this synchronously, but it's a very fast operation
+        // (it doesn't hit the disk). We need to know when it ends so we can
+        // call the next save (on the persisting context). This last one might
+        // take some time and is done in a background queue
         context.performAndWait() {
-            
             if self.context.hasChanges {
                 do {
                     try self.context.save()
                 } catch {
-                    fatalError("Error while saving main context: \(error)")
+                    fatalError("\(Constants.ErrorMessages.noMainContext) \(error)")
                 }
-                
                 // now we save in the background
                 self.persistingContext.perform() {
                     do {
                         try self.persistingContext.save()
                     } catch {
-                        fatalError("Error while saving persisting context: \(error)")
+                        fatalError("\(Constants.ErrorMessages.noPersistingContext) \(error)")
                     }
                 }
             }
