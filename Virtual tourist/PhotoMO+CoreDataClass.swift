@@ -2,7 +2,7 @@
 //  PhotoMO+CoreDataClass.swift
 //  Virtual tourist
 //
-//  Created by Mauricio Chirino on 15/8/17.
+//  Created by Mauricio Chirino on 17/8/17.
 //  Copyright © 2017 3CodeGeeks. All rights reserved.
 //
 

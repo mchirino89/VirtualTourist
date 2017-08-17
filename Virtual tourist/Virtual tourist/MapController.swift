@@ -41,6 +41,7 @@ class MapController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+//        mainMapView.mapType = .satelliteFlyover
         locationManager.delegate = self
         locationManager.desiredAccuracy = 30
         locationManager.requestWhenInUseAuthorization()
@@ -49,11 +50,12 @@ class MapController: UIViewController {
         touristMapView.addGestureRecognizer(pinDropLongPressGesture)
         
         // Configure a FetchRequest
-        
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: Constants.CoreData.Pin.creation, ascending: true)]
         
         // Create the FetchedResultsController
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
+        
+        mainMapView.setRegion(MKCoordinateRegion(center: locationManager.location!.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.25, longitudeDelta: 0.25)), animated: true)
     }
     
     func addPinToMap(gesture: UILongPressGestureRecognizer) {
@@ -102,7 +104,7 @@ class MapController: UIViewController {
     func getSelectedPin(referralPin: DropPinAnnotationView) -> PinMO? {
         do {
             let pinsSaved = try stack.context.fetch(fetchRequest) as! [PinMO]
-            // How could i do this with a NSPredicate? 
+            // 👉🏽 How could i do this with a NSPredicate?
             return pinsSaved.first(where: { $0.identifier! == referralPin.locationIdentifier! })
         } catch {
             print(Constants.ErrorMessages.pinCoreDataReading)
@@ -168,6 +170,7 @@ extension MapController: MKMapViewDelegate {
 extension MapController: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {}
+    
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
     
 }

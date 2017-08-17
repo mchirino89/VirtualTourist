@@ -28,7 +28,7 @@ class GalleryController: UIViewController {
             // reload the collection
             fetchedResultsController?.delegate = photoCollectionView.delegate as? NSFetchedResultsControllerDelegate
             executeSearch()
-            photoCollectionView.reloadData()
+            
         }
     }
     
@@ -45,12 +45,22 @@ class GalleryController: UIViewController {
         layout.minimumLineSpacing = 8
         layout.minimumInteritemSpacing = 8
         photoCollectionView.collectionViewLayout = layout
-        loadPinImages(page: 1) // Initial load
+        
         NotificationCenter.default.addObserver(forName: updateGalleryNotification, object: nil, queue: nil, using: galleryUpdate)
+        
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: Constants.CoreData.Photo.legend, ascending: true)]
+        // Filtering only pictures for this album
+        fetchRequest.predicate = NSPredicate(format: "pinId = %@", argumentArray: [referralPin])
         
         // Create the FetchedResultsController
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
+        
+        if referralPin.photoId!.allObjects.isEmpty {
+            loadPinImages(page: 1) // Initial load
+        } else {
+            pinLocationImagesPage = Int(referralPin.photoPages)
+            refreshCollectionList(UIAvailability: (pinLocationImagesPage! > 0, referralPin.totalPhotos > 0))
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -103,6 +113,7 @@ class GalleryController: UIViewController {
                 DispatchQueue.main.async {
                     let UIStates = self.setImagesSource(results: jsonResponse)
                     self.refreshCollectionList(UIAvailability: UIStates)
+                    self.executeSearch()
                 }
             }
         })
@@ -120,6 +131,7 @@ class GalleryController: UIViewController {
         }
         guard let pages = results[Constants.JSONResponseKey.pages] as? Int, let total = (results[Constants.JSONResponseKey.total] as? NSString)?.integerValue else { return (false, false) }
         pinLocationImagesPage = pages
+        referralPin.setAlbumValues(photoPages: pages, totalPhotos: total)
         return (pages > 1, total > 0)
     }
     
@@ -144,12 +156,15 @@ class GalleryController: UIViewController {
                 print(Constants.ErrorMessages.photoDeletion)
             }
         }
+        stack.save() // commiting deletes
+        executeSearch()
     }
     
     func executeSearch() {
         if let fc = fetchedResultsController {
             do {
                 try fc.performFetch()
+                photoCollectionView.reloadData()
             } catch let e as NSError {
                 print(Constants.ErrorMessages.searchHandler)
                 print(e)
@@ -163,6 +178,7 @@ extension GalleryController: UICollectionViewDelegate, UICollectionViewDataSourc
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let photo = fetchedResultsController?.object(at: indexPath) as! PhotoMO
+        print(photo)
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Constants.Storyboard.photoCell, for: indexPath) as! PhotoCollectionViewCell
         cell.setPhoto(referralPhoto: photo)
         cell.setLongPressGesture(navigationController: navigationController!)
@@ -178,6 +194,11 @@ extension GalleryController: UICollectionViewDelegate, UICollectionViewDataSourc
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+//        if let fetchedResults = fetchedResultsController, fetchedResults.sections![section].numberOfObjects > 0 {
+//            return fetchedResults.sections![section].numberOfObjects
+//        }
+//        photoCollectionView.alpha = 0
+//        return 0
         return fetchedResultsController != nil ? fetchedResultsController!.sections![section].numberOfObjects : 0
     }
 }

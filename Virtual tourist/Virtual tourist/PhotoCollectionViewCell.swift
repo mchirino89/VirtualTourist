@@ -38,6 +38,7 @@ class PhotoCollectionViewCell: UICollectionViewCell {
                 } else {
                     DispatchQueue.main.async {
                         let downloadedImage = UIImage(data: data!)
+                        // 👉🏽 I tried this "hack" to prevent image flickering during scrolling in collection but it's not working on my end; i have a slower bandwidth than average so you might no notice it right away but when fast scrolling during image downloading they tend to replace wrong images in the cell until the proper one is downloaded and then replace it (user-perceivable) 
                         if self.photoSourceURL == referralPhoto.sourceURL {
                             self.thumbNailImage.image = downloadedImage
                         }

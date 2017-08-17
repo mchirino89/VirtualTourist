@@ -2,7 +2,7 @@
 //  PinMO+CoreDataClass.swift
 //  Virtual tourist
 //
-//  Created by Mauricio Chirino on 15/8/17.
+//  Created by Mauricio Chirino on 17/8/17.
 //  Copyright © 2017 3CodeGeeks. All rights reserved.
 //
 
@@ -23,5 +23,10 @@ public class PinMO: NSManagedObject {
         } else {
             fatalError("\(Constants.ErrorMessages.noEntity) \(Constants.CoreData.Pin.entity)")
         }
+    }
+    
+    func setAlbumValues(photoPages: Int, totalPhotos: Int) {
+        self.photoPages = Int16(photoPages)
+        self.totalPhotos = Int64(totalPhotos)
     }
 }
