@@ -19,9 +19,9 @@ class MapController: UIViewController {
     
     let addressDecoder = CLGeocoder()
     let stack = (UIApplication.shared.delegate as! AppDelegate).stack
-    
-    var locationManager = CLLocationManager()
     let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: Constants.CoreData.Pin.entity)
+    var locationManager = CLLocationManager()
+    var pinIdentifier:String?
     var fetchedResultsController : NSFetchedResultsController<NSFetchRequestResult>? {
         didSet {
             // Whenever the frc changes
@@ -41,7 +41,6 @@ class MapController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-//        mainMapView.mapType = .satelliteFlyover
         locationManager.delegate = self
         locationManager.desiredAccuracy = 30
         locationManager.requestWhenInUseAuthorization()
@@ -57,22 +56,35 @@ class MapController: UIViewController {
     }
     
     func addPinToMap(gesture: UILongPressGestureRecognizer) {
-        if gesture.state == .began {
-            let pin = setPinInfo(coordinate: touristMapView.convert(gesture.location(in: touristMapView), toCoordinateFrom: touristMapView), title: nil, subtitle: Date().description, identifier: Date().timeIntervalSince1970.description)
-            
-            addressDecoder.reverseGeocodeLocation(CLLocation(latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude), completionHandler: {
-                    [unowned self] (result, error) in
+        var pin:DropPinAnnotationView?
+        switch gesture.state {
+        case .began:
+            pinIdentifier = Date().timeIntervalSince1970.description
+            pin = setPinInfo(coordinate: touristMapView.convert(gesture.location(in: touristMapView), toCoordinateFrom: touristMapView), title: nil, subtitle: Date().description, identifier: pinIdentifier!)
+            break
+        case .changed:
+            pin = getPinById(identifier: pinIdentifier!)
+            pin!.coordinate = touristMapView.convert(gesture.location(in: touristMapView), toCoordinateFrom: touristMapView)
+            break
+        case .ended:
+            pin = getPinById(identifier: pinIdentifier!)
+            addressDecoder.reverseGeocodeLocation(CLLocation(latitude: pin!.coordinate.latitude, longitude: pin!.coordinate.longitude), completionHandler: {
+                [unowned self] (result, error) in
                 guard let address = result else { return }
-                let matchedPin = self.mainMapView.annotations.first(where: {
-                    !$0.isKind(of: MKUserLocation.self) &&
-                    ($0 as! DropPinAnnotationView).locationIdentifier == pin.locationIdentifier!
-                })
-                let title = address[0].locality ?? address[0].name
-                (matchedPin as! DropPinAnnotationView).title = title
-                let _ = PinMO(identifier: pin.locationIdentifier!, title: title!, subtitle: pin.subtitle!, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude, creation: pin.creationDate, context: self.fetchedResultsController!.managedObjectContext)
-                self.deletePinButton.isEnabled = true
+                let matchedPin = self.getPinById(identifier: pin!.locationIdentifier!)
+                let pinTitle = address[0].locality ?? address[0].name
+                matchedPin!.title = pinTitle
+                let _ = PinMO(identifier: pin!.locationIdentifier!, title: pinTitle!, subtitle: pin!.subtitle!, latitude: pin!.coordinate.latitude, longitude: pin!.coordinate.longitude, creation: pin!.creationDate, context: self.fetchedResultsController!.managedObjectContext)
             })
+            deletePinButton.isEnabled = true
+            break
+        default:
+            break
         }
+    }
+    
+    private func getPinById(identifier: String) -> DropPinAnnotationView? {
+        return touristMapView.annotations.first(where: { ($0 as? DropPinAnnotationView)?.locationIdentifier == identifier}) as? DropPinAnnotationView
     }
     
     private func setPinInfo(coordinate: CLLocationCoordinate2D, title: String?, subtitle: String?, identifier: String?) -> DropPinAnnotationView {
@@ -102,7 +114,6 @@ class MapController: UIViewController {
     func getSelectedPin(referralPin: DropPinAnnotationView) -> PinMO? {
         do {
             let pinsSaved = try stack.context.fetch(fetchRequest) as! [PinMO]
-            // 👉🏽 How could i do this with a NSPredicate?
             return pinsSaved.first(where: { $0.identifier! == referralPin.locationIdentifier! })
         } catch {
             print(Constants.ErrorMessages.pinCoreDataReading)

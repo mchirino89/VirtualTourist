@@ -28,7 +28,6 @@ class GalleryController: UIViewController {
             // reload the collection
             fetchedResultsController?.delegate = photoCollectionView.delegate as? NSFetchedResultsControllerDelegate
             executeSearch()
-            
         }
     }
     
@@ -84,7 +83,7 @@ class GalleryController: UIViewController {
     }
     
     private func loadPinImages(page: Int) {
-        
+        print(page)
         photoRemoval()
         
         loadingView.alpha = 0.6
@@ -150,14 +149,15 @@ class GalleryController: UIViewController {
             stack.context.delete(photoDeleted)
         } else {
             do {
-                let photosSaved = try stack.context.fetch(fetchRequest) as! [PhotoMO]
-                let _ = photosSaved.map { stack.context.delete($0) }
+                // 👉🏽 Executing a batch deletion, is this ok? Sometimes it crashes (when pushing "new collection" many times
+                let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                let _ = try stack.context.execute(deleteRequest)
             } catch {
                 print(Constants.ErrorMessages.photoDeletion)
             }
         }
-        stack.save() // commiting deletes
         executeSearch()
+//        stack.save() // commiting deletes
     }
     
     func executeSearch() {
@@ -178,8 +178,8 @@ extension GalleryController: UICollectionViewDelegate, UICollectionViewDataSourc
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let photo = fetchedResultsController?.object(at: indexPath) as! PhotoMO
-        print(photo)
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Constants.Storyboard.photoCell, for: indexPath) as! PhotoCollectionViewCell
+        cell.thumbNailImage.image = nil
         cell.setPhoto(referralPhoto: photo)
         cell.setLongPressGesture(navigationController: navigationController!)
         return cell
