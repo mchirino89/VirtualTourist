@@ -20,11 +20,22 @@ class Networking: NSObject {
     
     // MARK: GET
     
-    func taskForGETMethod(serverHost: String, serverPath: String, parameters: [String:AnyObject], isJSON: Bool, completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) -> URLSessionTask {
+    func taskForGETMethod(serverHost: String, serverPath: String = "", parameters: [String:AnyObject] = [:], isJSON: Bool, completionHandlerForGET: @escaping (_ result: [String:AnyObject]?, _ data: Data?, _ error: NSError?) -> Void) -> URLSessionTask {
         
         var request:NSMutableURLRequest?
         if isJSON {
-            request = NSMutableURLRequest(url: URLFromParameters(host: serverHost, path: serverPath, parameters: parameters))
+            let getParametersRequest:[String:AnyObject] = [
+                Constants.ParameterKey.method: Constants.ParameterValue.method as AnyObject,
+                Constants.ParameterKey.APIKey: Constants.ParameterValue.APIKey as AnyObject,
+                Constants.ParameterKey.latitude: parameters[Constants.ParameterKey.latitude]!,
+                Constants.ParameterKey.longitude: parameters[Constants.ParameterKey.longitude]!,
+                Constants.ParameterKey.format: Constants.ParameterValue.format as AnyObject,
+                Constants.ParameterKey.results: Constants.ParameterValue.results as AnyObject,
+                Constants.ParameterKey.extra: Constants.ParameterValue.extra as AnyObject,
+                Constants.ParameterKey.callback: Constants.ParameterValue.callback as AnyObject,
+                Constants.ParameterKey.currentPage: parameters[Constants.ParameterKey.currentPage]!
+            ]
+            request = NSMutableURLRequest(url: URLFromParameters(host: serverHost, path: serverPath, parameters: getParametersRequest))
         } else {
             let URLStruct = getURLStruct(URL: serverHost)
             request = NSMutableURLRequest(url: URLFromParameters(host: URLStruct.0, path: URLStruct.1, parameters: parameters))

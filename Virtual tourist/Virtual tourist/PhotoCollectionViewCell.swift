@@ -27,7 +27,7 @@ class PhotoCollectionViewCell: UICollectionViewCell {
             thumbNailImage.image = UIImage(data: data as Data)
             downloadActivityIndicator.stopAnimating()
         } else {
-            photoDownloadTask = Networking.sharedInstance().taskForGETMethod(serverHost: referralPhoto.sourceURL!, serverPath: "", parameters: [:], isJSON: false, completionHandlerForGET: {
+            photoDownloadTask = Networking.sharedInstance().taskForGETMethod(serverHost: referralPhoto.sourceURL!, isJSON: false, completionHandlerForGET: {
                 [unowned self] (JSON, data, error) in
                 if let error = error {
                     print(error)

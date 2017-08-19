@@ -90,14 +90,8 @@ class GalleryController: UIViewController {
         view.bringSubview(toFront: loadingView)
         
         let getPhotosParameters:[String:AnyObject] = [
-            Constants.ParameterKey.method: Constants.ParameterValue.method as AnyObject,
-            Constants.ParameterKey.APIKey: Constants.ParameterValue.APIKey as AnyObject,
             Constants.ParameterKey.latitude: referralPin.latitude as AnyObject,
             Constants.ParameterKey.longitude: referralPin.longitude as AnyObject,
-            Constants.ParameterKey.format: Constants.ParameterValue.format as AnyObject,
-            Constants.ParameterKey.results: Constants.ParameterValue.results as AnyObject,
-            Constants.ParameterKey.extra: Constants.ParameterValue.extra as AnyObject,
-            Constants.ParameterKey.callback: Constants.ParameterValue.callback as AnyObject,
             Constants.ParameterKey.currentPage: page as AnyObject
         ]
         
