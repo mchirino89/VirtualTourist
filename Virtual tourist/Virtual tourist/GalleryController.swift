@@ -58,7 +58,7 @@ class GalleryController: UIViewController {
             loadPinImages(page: 1) // Initial load
         } else {
             pinLocationImagesPage = Int(referralPin.photoPages)
-            refreshCollectionList(UIAvailability: (pinLocationImagesPage! > 0, referralPin.totalPhotos > 0))
+            refreshCollectionList(UIAvailability: (pinLocationImagesPage! > 1, referralPin.totalPhotos > 0))
         }
     }
     
@@ -67,6 +67,13 @@ class GalleryController: UIViewController {
         guard let selectedCell = sender as? PhotoCollectionViewCell else { return }
         destination.fullImage = selectedCell.thumbNailImage.image
         destination.imageLegend = selectedCell.photoLegend
+    }
+    
+    override func willMove(toParentViewController parent: UIViewController?) {
+        if parent == nil {
+            // Saving in disk when going back to map
+            stack.save()
+        }
     }
     
     func galleryUpdate(notification: Notification) {
@@ -79,11 +86,17 @@ class GalleryController: UIViewController {
     
     @IBAction func newCollectionAction() {
         Singleton.sharedInstance.appCache.removeAllObjects()
-        loadPinImages(page: Int(arc4random_uniform(UInt32(pinLocationImagesPage!))))
+        loadPinImages(page: Int(arc4random_uniform(UInt32(pinLocationImagesPage! + 1))))
+    }
+    
+    @IBAction func deleteCollectionAction(_ sender: Any) {
+        print(fetchedResultsController?.fetchedObjects?.count as Any)
+        photoRemoval()
+        print(fetchedResultsController?.fetchedObjects?.count as Any)
     }
     
     private func loadPinImages(page: Int) {
-        print(page)
+        print("Loading page: ", page)
         photoRemoval()
         
         loadingView.alpha = 0.6
@@ -134,7 +147,7 @@ class GalleryController: UIViewController {
             self.photoCollectionView.alpha = UIAvailability.1 ? 1 : 0
         }, completion: { _ in
             self.view.sendSubview(toBack: self.loadingView)
-            self.newCollectionButton.isEnabled = UIAvailability.0
+            self.newCollectionButton.isEnabled = UIAvailability.0 && UIAvailability.1
         })
     }
     
@@ -143,15 +156,23 @@ class GalleryController: UIViewController {
             stack.context.delete(photoDeleted)
         } else {
             do {
-                // 👉🏽 Executing a batch deletion, is this ok? Sometimes it crashes (when pushing "new collection" many times
-                let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                let _ = try stack.context.execute(deleteRequest)
+                let savedPhotos = try stack.context.fetch(fetchRequest) as! [PhotoMO]
+                var removalIndex = 0
+                let _ = savedPhotos.map {
+                    let indexPath = IndexPath(row: removalIndex, section: 0)
+                    // deleting from DB
+                    stack.context.delete($0)
+                    removalIndex += 1
+                    // cleaning network request
+                    if let currentCell = photoCollectionView.cellForItem(at: indexPath) as? PhotoCollectionViewCell {
+                        currentCell.cancelPhotoDownload()
+                    }
+                }
             } catch {
                 print(Constants.ErrorMessages.photoDeletion)
             }
         }
         executeSearch()
-//        stack.save() // commiting deletes
     }
     
     func executeSearch() {
@@ -160,8 +181,7 @@ class GalleryController: UIViewController {
                 try fc.performFetch()
                 photoCollectionView.reloadData()
             } catch let e as NSError {
-                print(Constants.ErrorMessages.searchHandler)
-                print(e)
+                print(Constants.ErrorMessages.searchHandler, e)
                 print(fetchedResultsController?.description as Any)
             }
         }
@@ -188,11 +208,6 @@ extension GalleryController: UICollectionViewDelegate, UICollectionViewDataSourc
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        if let fetchedResults = fetchedResultsController, fetchedResults.sections![section].numberOfObjects > 0 {
-//            return fetchedResults.sections![section].numberOfObjects
-//        }
-//        photoCollectionView.alpha = 0
-//        return 0
         return fetchedResultsController != nil ? fetchedResultsController!.sections![section].numberOfObjects : 0
     }
 }

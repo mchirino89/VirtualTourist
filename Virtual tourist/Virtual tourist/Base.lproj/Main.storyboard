@@ -173,7 +173,13 @@
                             <constraint firstItem="Lnl-jk-4M9" firstAttribute="height" secondItem="CzX-8w-hJy" secondAttribute="height" multiplier="0.25" id="y0n-67-JFh"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="Wyl-hc-6JT"/>
+                    <navigationItem key="navigationItem" id="Wyl-hc-6JT">
+                        <barButtonItem key="rightBarButtonItem" systemItem="trash" id="IHU-tk-Mej">
+                            <connections>
+                                <action selector="deleteCollectionAction:" destination="atv-T1-7kF" id="MGh-P7-eAQ"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <connections>
                         <outlet property="detailedMapView" destination="Lnl-jk-4M9" id="Th6-JP-uDJ"/>

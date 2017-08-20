@@ -27,6 +27,8 @@ class PhotoCollectionViewCell: UICollectionViewCell {
             thumbNailImage.image = UIImage(data: data as Data)
             downloadActivityIndicator.stopAnimating()
         } else {
+            downloadActivityIndicator.startAnimating()
+            thumbNailImage.image = #imageLiteral(resourceName: "placeholderPhoto")
             photoDownloadTask = Networking.sharedInstance().taskForGETMethod(serverHost: referralPhoto.sourceURL!, isJSON: false, completionHandlerForGET: {
                 [unowned self] (JSON, data, error) in
                 if let error = error {

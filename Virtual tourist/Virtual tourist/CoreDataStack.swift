@@ -117,6 +117,23 @@ extension CoreDataStack {
 
 extension CoreDataStack {
     
+    func autoSave(_ delayInSeconds : Int) {
+        if delayInSeconds > 0 {
+            if context.hasChanges {
+                do {
+                    try context.save()
+                } catch {
+                    print(Constants.ErrorMessages.autoSaving)
+                }
+                let delayInNanoSeconds = UInt64(delayInSeconds) * NSEC_PER_SEC
+                let time = DispatchTime.now() + Double(Int64(delayInNanoSeconds)) / Double(NSEC_PER_SEC)
+                DispatchQueue.main.asyncAfter(deadline: time) {
+                    self.autoSave(delayInSeconds)
+                }
+            }
+        }
+    }
+    
     func save() {
         // We call this synchronously, but it's a very fast operation
         // (it doesn't hit the disk). We need to know when it ends so we can
@@ -133,21 +150,11 @@ extension CoreDataStack {
                 self.persistingContext.perform() {
                     do {
                         try self.persistingContext.save()
+                        print("Persisted info in disk")
                     } catch {
                         fatalError("\(Constants.ErrorMessages.noPersistingContext) \(error)")
                     }
                 }
-            }
-        }
-    }
-    
-    func autoSave(_ delayInSeconds : Int) {
-        if delayInSeconds > 0 {
-            save()
-            let delayInNanoSeconds = UInt64(delayInSeconds) * NSEC_PER_SEC
-            let time = DispatchTime.now() + Double(Int64(delayInNanoSeconds)) / Double(NSEC_PER_SEC)
-            DispatchQueue.main.asyncAfter(deadline: time) {
-                self.autoSave(delayInSeconds)
             }
         }
     }

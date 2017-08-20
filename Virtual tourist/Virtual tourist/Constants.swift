@@ -73,6 +73,7 @@ struct Constants {
     }
     
     struct ErrorMessages {
+        static let cancelledCode = -999
         static let credentials = "These credentials don't look right. Make sure you entered the corrects ones and try again please."
         static let internetConnection = "It seems you don't have an active internet connection right now. Make sure you do before you try again please"
         static let parsingJSON = "Could not parse the data as JSON: "
@@ -94,6 +95,8 @@ struct Constants {
         static let noPersistingContext = "Error while saving persisting context:"
         static let photoDeletion = "Error deleting saved photos from album"
         static let noCellFound = "No match found for this deletion in notification"
+        static let autoSaving = "Error while autosaving"
+        static let cancelledRequest = "The request for this resource was cancelled by design"
     }
     
     struct UIMessages {
