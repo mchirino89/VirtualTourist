@@ -12,6 +12,8 @@ class Networking: NSObject {
     
     let session = URLSession.shared
     
+    static let single = Networking()
+    
     // MARK: Initializers
     
     override init() {

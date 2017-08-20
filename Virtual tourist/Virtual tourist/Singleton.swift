@@ -9,7 +9,6 @@
 import UIKit
 
 class Singleton {
-    let appCache = NSCache<AnyObject, AnyObject>()
     static let sharedInstance = Singleton()
     private init() {}
 }

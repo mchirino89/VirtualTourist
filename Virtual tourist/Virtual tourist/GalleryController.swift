@@ -85,7 +85,6 @@ class GalleryController: UIViewController {
     }
     
     @IBAction func newCollectionAction() {
-        Singleton.sharedInstance.appCache.removeAllObjects()
         // This is the number of pages this location returns
         let pagesForThisRequest = pinLocationImagesPage!
         // In here i choose the lesser of these couple of vales: 
@@ -101,9 +100,7 @@ class GalleryController: UIViewController {
     }
     
     @IBAction func deleteCollectionAction(_ sender: Any) {
-        print(fetchedResultsController?.fetchedObjects?.count as Any)
         photoRemoval()
-        print(fetchedResultsController?.fetchedObjects?.count as Any)
     }
     
     private func loadPinImages(page: Int) {
