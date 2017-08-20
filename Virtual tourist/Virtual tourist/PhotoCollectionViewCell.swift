@@ -40,9 +40,15 @@ class PhotoCollectionViewCell: UICollectionViewCell {
                 } else {
                     DispatchQueue.main.async {
                         let downloadedImage = UIImage(data: data!)
-                        if self.photoSourceURL == referralPhoto.sourceURL {
-                            self.thumbNailImage.image = downloadedImage
-                        }
+                        self.thumbNailImage.bounds.size = CGSize(width: 60, height: 60)
+                        self.thumbNailImage.alpha = 0
+                        UIView.animate(withDuration: 0.6, animations: {
+                            if self.photoSourceURL == referralPhoto.sourceURL {
+                                self.thumbNailImage.image = downloadedImage
+                            }
+                            self.thumbNailImage.bounds.size = CGSize(width: 120, height: 120)
+                            self.thumbNailImage.alpha = 1
+                        })
                         referralPhoto.image = data! as NSData
                         self.downloadActivityIndicator.stopAnimating()
                     }
