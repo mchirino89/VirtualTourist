@@ -91,8 +91,8 @@ struct Constants {
         static let noFolder = "Unable to reach the documents folder"
         static let noStore = "Unable to add store at"
         static let noBackgroundContext = "Error while saving backgroundContext:"
-        static let noMainContext = "Error while saving main context:"
-        static let noPersistingContext = "Error while saving persisting context:"
+        static let noMainContext = "Error while saving main context "
+        static let noPersistingContext = "Error while saving persisting context "
         static let photoDeletion = "Error deleting saved photos from album"
         static let noCellFound = "No match found for this deletion in notification"
         static let autoSaving = "Error while autosaving"
@@ -110,6 +110,7 @@ struct Constants {
     
     struct Utilities {
         static let updateNotification = "com.3codegeeks.VirtualTourist.updateNotification"
+        static let saveConfirmation = "Saved current context in disk"
     }
     
     struct CoreData {

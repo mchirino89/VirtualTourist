@@ -119,17 +119,11 @@ extension CoreDataStack {
     
     func autoSave(_ delayInSeconds : Int) {
         if delayInSeconds > 0 {
-            if context.hasChanges {
-                do {
-                    try context.save()
-                } catch {
-                    print(Constants.ErrorMessages.autoSaving)
-                }
-                let delayInNanoSeconds = UInt64(delayInSeconds) * NSEC_PER_SEC
-                let time = DispatchTime.now() + Double(Int64(delayInNanoSeconds)) / Double(NSEC_PER_SEC)
-                DispatchQueue.main.asyncAfter(deadline: time) {
-                    self.autoSave(delayInSeconds)
-                }
+            save()
+            let delayInNanoSeconds = UInt64(delayInSeconds) * NSEC_PER_SEC
+            let time = DispatchTime.now() + Double(Int64(delayInNanoSeconds)) / Double(NSEC_PER_SEC)
+            DispatchQueue.main.asyncAfter(deadline: time) {
+                self.autoSave(delayInSeconds)
             }
         }
     }
@@ -144,13 +138,14 @@ extension CoreDataStack {
                 do {
                     try self.context.save()
                 } catch {
-                    fatalError("\(Constants.ErrorMessages.noMainContext) \(error)")
+                    print(error)
+                    fatalError(Constants.ErrorMessages.noMainContext)
                 }
                 // now we save in the background
                 self.persistingContext.perform() {
                     do {
                         try self.persistingContext.save()
-                        print("Persisted info in disk")
+                        print(Constants.Utilities.saveConfirmation)
                     } catch {
                         fatalError("\(Constants.ErrorMessages.noPersistingContext) \(error)")
                     }
