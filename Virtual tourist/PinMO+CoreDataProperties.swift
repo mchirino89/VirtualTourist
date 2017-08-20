@@ -23,7 +23,7 @@ extension PinMO {
     @NSManaged public var subtitle: String?
     @NSManaged public var title: String?
     @NSManaged public var totalPhotos: Int64
-    @NSManaged public var photoPages: Int16
+    @NSManaged public var photoPages: Int64
     @NSManaged public var photoId: NSSet?
 
 }

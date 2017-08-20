@@ -33,7 +33,7 @@ class GalleryController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = referralPin.title! + " - page: 1"
+        title = referralPin.title!
         let referralPinInMap = MKPointAnnotation()
         referralPinInMap.coordinate = CLLocationCoordinate2D(latitude: referralPin.latitude, longitude: referralPin.longitude)
         detailedMapView.addAnnotation(referralPinInMap)
@@ -140,8 +140,14 @@ class GalleryController: UIViewController {
         guard let photos = results[Constants.JSONResponseKey.image] as? [[String: Any]] else { return (false, false) }
         if photos.count > 0 {
             let _ = photos.map {
-                let sourceURL = $0[Constants.JSONResponseKey.sourceURL] as! String
-                let legend = $0[Constants.JSONResponseKey.legend] as! String
+                guard let sourceURL = $0[Constants.JSONResponseKey.sourceURL] as? String else {
+                    print("Problems with sourceURL in \($0)")
+                    return
+                }
+                guard let legend = $0[Constants.JSONResponseKey.legend] as? String else {
+                    print("Problems with legend in \($0)")
+                    return
+                }
                 let addedPhoto = PhotoMO(sourceURL: sourceURL, legend: legend, context: fetchedResultsController!.managedObjectContext)
                 addedPhoto.pinId = referralPin
             }

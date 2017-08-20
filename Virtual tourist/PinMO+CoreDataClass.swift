@@ -26,7 +26,7 @@ public class PinMO: NSManagedObject {
     }
     
     func setAlbumValues(photoPages: Int, totalPhotos: Int) {
-        self.photoPages = Int16(photoPages)
+        self.photoPages = Int64(photoPages)
         self.totalPhotos = Int64(totalPhotos)
     }
 }
