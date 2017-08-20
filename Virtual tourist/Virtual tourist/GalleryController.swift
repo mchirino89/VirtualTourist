@@ -33,7 +33,7 @@ class GalleryController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = referralPin.title
+        title = referralPin.title! + " - page: 1"
         let referralPinInMap = MKPointAnnotation()
         referralPinInMap.coordinate = CLLocationCoordinate2D(latitude: referralPin.latitude, longitude: referralPin.longitude)
         detailedMapView.addAnnotation(referralPinInMap)
@@ -86,7 +86,18 @@ class GalleryController: UIViewController {
     
     @IBAction func newCollectionAction() {
         Singleton.sharedInstance.appCache.removeAllObjects()
-        loadPinImages(page: Int(arc4random_uniform(UInt32(pinLocationImagesPage! + 1))))
+        // This is the number of pages this location returns
+        let pagesForThisRequest = pinLocationImagesPage!
+        // In here i choose the lesser of these couple of vales: 
+        // 1. The number of pages the API tells me this location returns
+        // 2. Flickr max return
+        // I did a min between the two of them to prevent asking for a 
+        // bigger value any given return may have (area with few pictures 
+        // registered)
+        // Finally i inserted + 1 in case 0 is returned by the random generator,
+        // therefore the first page -1- should be provided for the request.
+        let lowerPageAmount = min(pagesForThisRequest, maxPhotosRequest())
+        loadPinImages(page: Int(arc4random_uniform(UInt32(lowerPageAmount))) + 1)
     }
     
     @IBAction func deleteCollectionAction(_ sender: Any) {
@@ -96,7 +107,7 @@ class GalleryController: UIViewController {
     }
     
     private func loadPinImages(page: Int) {
-        print("Loading page: ", page)
+        title = referralPin.title! + " - page: \(page)"
         photoRemoval()
         
         loadingView.alpha = 0.6
@@ -173,6 +184,12 @@ class GalleryController: UIViewController {
             }
         }
         executeSearch()
+    }
+    
+    // In here i return the calculation you asked me to do
+    private func maxPhotosRequest() -> Int {
+        let requestablePhotos = 4000 / Constants.ParameterValue.results
+        return min(requestablePhotos, pinLocationImagesPage!)
     }
     
     func executeSearch() {
