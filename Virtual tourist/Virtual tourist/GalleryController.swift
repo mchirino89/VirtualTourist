@@ -33,7 +33,7 @@ class GalleryController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = referralPin.title!
+        navigationItem.titleView = getCustomTitle(viewTitle: referralPin.title!)
         let referralPinInMap = MKPointAnnotation()
         referralPinInMap.coordinate = CLLocationCoordinate2D(latitude: referralPin.latitude, longitude: referralPin.longitude)
         detailedMapView.addAnnotation(referralPinInMap)
@@ -104,7 +104,6 @@ class GalleryController: UIViewController {
     }
     
     private func loadPinImages(page: Int) {
-        title = referralPin.title! + " - page: \(page)"
         photoRemoval()
         
         loadingView.alpha = 0.6

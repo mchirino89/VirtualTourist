@@ -53,6 +53,7 @@ class MapController: UIViewController {
         
         // Create the FetchedResultsController
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
+        navigationItem.titleView = getCustomTitle(viewTitle: Constants.UIElements.title)
     }
     
     func addPinToMap(gesture: UILongPressGestureRecognizer) {

@@ -68,6 +68,7 @@ struct Constants {
     }
     
     struct UIElements {
+        static let title = "Virtual tourist"
         static let mapPinId = "pin"
         static let customTitleFont = "MarkerFelt-Thin"
     }
